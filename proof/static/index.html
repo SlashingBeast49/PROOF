@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROOF — Document Intelligence & Verification</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        code, pre { font-family: 'JetBrains Mono', monospace; }
+        .gradient-border {
+            background: linear-gradient(to right, #059669, #0284c7);
+            height: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
+    <div class="gradient-border"></div>
+
+    <!-- Top Navigation Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-lg bg-slate-950 text-white flex items-center justify-center font-bold text-lg tracking-wider shadow-sm">
+                    P
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-extrabold text-xl tracking-tight text-slate-900">PROOF</span>
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">v0.1.0</span>
+                    </div>
+                    <p class="text-xs text-slate-500 font-medium">Document verification, without the magic-word marketing.</p>
+                </div>
+            </div>
+
+            <!-- Quick Benchmark Selector & Actions -->
+            <div class="flex items-center space-x-3">
+                <div class="hidden sm:flex items-center space-x-2 text-xs text-slate-600 bg-slate-100 px-3 py-1.5 rounded-md border border-slate-200">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Deterministic Engine Online</span>
+                </div>
+
+                <div class="relative">
+                    <button id="scenarioBtn" onclick="toggleScenarioDropdown()" class="inline-flex items-center text-xs font-semibold bg-white border border-slate-300 hover:border-slate-400 text-slate-700 px-3 py-2 rounded-lg transition shadow-xs">
+                        <span>🧪 Load Demo Scenarios</span>
+                        <svg class="w-4 h-4 ml-1.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="scenarioDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50">
+                        <div class="px-3 py-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100">Benchmark Scenarios</div>
+                        <button onclick="loadScenario('perfect_match')" class="w-full text-left px-3 py-2.5 text-xs hover:bg-slate-50 flex flex-col">
+                            <span class="font-bold text-emerald-700">1. Invoice & PO Harmonized</span>
+                            <span class="text-slate-500 mt-0.5">Matching totals, PO reference, valid dates.</span>
+                        </button>
+                        <button onclick="loadScenario('amount_and_po_mismatch')" class="w-full text-left px-3 py-2.5 text-xs hover:bg-slate-50 flex flex-col border-t border-slate-100">
+                            <span class="font-bold text-rose-700">2. Total Discrepancy & PO Conflict</span>
+                            <span class="text-slate-500 mt-0.5">Billed amount differs, PO id mismatch, date order fault.</span>
+                        </button>
+                        <button onclick="loadScenario('incomplete_tax_error')" class="w-full text-left px-3 py-2.5 text-xs hover:bg-slate-50 flex flex-col border-t border-slate-100">
+                            <span class="font-bold text-amber-700">3. Missing Fields & Math Anomaly</span>
+                            <span class="text-slate-500 mt-0.5">Missing tax & due date, subtotal arithmetic mismatch.</span>
+                        </button>
+                        <button onclick="loadScenario('currency_clash')" class="w-full text-left px-3 py-2.5 text-xs hover:bg-slate-50 flex flex-col border-t border-slate-100">
+                            <span class="font-bold text-indigo-700">4. Currency Clash (INR vs USD)</span>
+                            <span class="text-slate-500 mt-0.5">Conflicting currencies across procurement documents.</span>
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="resetToUpload()" class="text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-lg transition shadow-xs flex items-center space-x-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    <span>New Case</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Philosophy Banner -->
+    <aside aria-label="Core Philosophy" class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-slate-200 text-xs py-2.5 px-4 border-b border-slate-700">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <span class="font-bold text-emerald-400 uppercase tracking-wider text-[11px]">Core Philosophy:</span>
+                <span>PROOF does not pretend to certify authenticity. It shows what it extracted, what it checked, what it found, and what it could not establish.</span>
+            </div>
+            <a href="https://github.com/SlashingBeast49/PROOF" target="_blank" class="hidden md:inline-flex items-center text-slate-400 hover:text-white transition">
+                <span>GitHub</span>
+                <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        
+        <!-- SECTION 1: UPLOAD / INPUT PANEL -->
+        <div id="uploadSection" class="space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                <div class="p-6 sm:p-8">
+                    <div class="max-w-3xl">
+                        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Verify Document Consistency</h2>
+                        <p class="text-sm text-slate-600 mt-1">Upload multiple documents (PDFs, text files) or paste text directly to run cross-document consistency checks and audit calculations.</p>
+                    </div>
+
+                    <!-- Input Method Selector -->
+                    <div class="flex border-b border-slate-200 mt-6 space-x-6 text-sm font-semibold">
+                        <button id="tabFilesBtn" onclick="switchInputTab('files')" class="pb-3 border-b-2 border-emerald-600 text-emerald-600 flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                            <span>Upload Files (PDF / TXT)</span>
+                        </button>
+                        <button id="tabTextBtn" onclick="switchInputTab('text')" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <span>Paste Document Text Directly</span>
+                        </button>
+                    </div>
+
+                    <!-- Mode A: File Upload Dropzone -->
+                    <div id="fileUploadContainer" class="mt-6">
+                        <div id="dropzone" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 bg-slate-50/50 hover:bg-emerald-50/20 rounded-xl p-8 text-center transition cursor-pointer">
+                            <input type="file" id="fileInput" multiple accept=".pdf,.txt,.md,.csv" class="hidden" onchange="handleFileSelection(event)">
+                            <div class="max-w-md mx-auto flex flex-col items-center">
+                                <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                </div>
+                                <div class="text-sm font-semibold text-slate-800">
+                                    <span class="text-emerald-700 hover:underline">Click to browse files</span> or drag and drop here
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1">Supports PDF invoices, purchase orders, contracts, receipts, or raw .txt files.</p>
+                            </div>
+                        </div>
+
+                        <!-- Selected Files List -->
+                        <div id="selectedFilesList" class="mt-4 space-y-2 hidden">
+                            <div class="text-xs font-bold text-slate-600 uppercase tracking-wider">Ready to Verify:</div>
+                            <div id="filesContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                            <div class="pt-4 flex justify-end">
+                                <button onclick="uploadAndVerifyFiles()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg shadow-sm transition flex items-center space-x-2">
+                                    <span>Verify Selected Documents</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mode B: Direct Text Paste (Multi-document support) -->
+                    <div id="textUploadContainer" class="mt-6 hidden">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Document A -->
+                            <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label for="doc1Filename" class="text-xs font-bold text-slate-700 uppercase tracking-wider">Document 1 (e.g. Invoice)</label>
+                                    <input type="text" id="doc1Filename" value="Invoice_001.txt" class="text-xs border border-slate-300 rounded px-2 py-1 font-mono text-slate-700 w-44">
+                                </div>
+                                <textarea id="doc1Content" rows="11" class="w-full text-xs font-mono p-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="Paste invoice text here...">Document Type: Invoice
+Invoice Number: INV-2026-001
+PO Reference: PO-9942
+Issue Date: 2026-08-20
+Due Date: 2026-09-19
+Vendor Name: Apex Software Solutions
+Customer Name: Siddharth Tech Ltd
+Currency: INR
+Subtotal: 1000.00
+Tax: 180.00
+Total: 1180.00</textarea>
+                            </div>
+
+                            <!-- Document B -->
+                            <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50">
+                                <div class="flex items-center justify-between mb-2">
+                                    <label for="doc2Filename" class="text-xs font-bold text-slate-700 uppercase tracking-wider">Document 2 (e.g. Purchase Order)</label>
+                                    <input type="text" id="doc2Filename" value="Purchase_Order_9942.txt" class="text-xs border border-slate-300 rounded px-2 py-1 font-mono text-slate-700 w-44">
+                                </div>
+                                <textarea id="doc2Content" rows="11" class="w-full text-xs font-mono p-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="Paste purchase order or receipt text here...">Document Type: Purchase Order
+PO Number: PO-9942
+Issue Date: 2026-08-15
+Delivery Date: 2026-09-15
+Vendor Name: Apex Software Solutions
+Customer Name: Siddharth Tech Ltd
+Currency: INR
+Subtotal: 1000.00
+Tax: 180.00
+Total: 1180.00</textarea>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 flex justify-between items-center">
+                            <span class="text-xs text-slate-500">You can also leave Document 2 empty to test single-document verification rules.</span>
+                            <button onclick="verifyPastedText()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg shadow-sm transition flex items-center space-x-2">
+                                <span>Run Deterministic Verification</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: VERIFICATION RESULTS DASHBOARD (Initially Hidden) -->
+        <div id="resultsSection" class="space-y-6 hidden">
+            
+            <!-- Verdict Banner -->
+            <div id="verdictBanner" class="p-6 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span id="verdictBadge" class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full"></span>
+                        <span id="caseIdLabel" class="text-xs font-mono text-slate-500"></span>
+                    </div>
+                    <h2 id="caseTitleLabel" class="text-2xl font-extrabold text-slate-900 mt-1"></h2>
+                    <p id="verdictDescription" class="text-sm text-slate-600 mt-1"></p>
+                </div>
+
+                <div class="flex items-center space-x-3 shrink-0">
+                    <button onclick="downloadJsonReport()" class="inline-flex items-center text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-2 rounded-lg transition shadow-xs">
+                        <svg class="w-4 h-4 mr-1.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        <span>Export JSON</span>
+                    </button>
+                    <button onclick="openPrintableHtmlReport()" class="inline-flex items-center text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg transition shadow-xs">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        <span>Print Audit Report</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary Metrics Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div onclick="filterFindings('all')" class="stat-card cursor-pointer bg-white border border-slate-200 rounded-xl p-4 text-center hover:border-slate-400 transition shadow-xs">
+                    <div id="statAll" class="text-2xl font-black text-slate-800">0</div>
+                    <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-0.5">Total Checks</div>
+                </div>
+                <div onclick="filterFindings('Match')" class="stat-card cursor-pointer bg-emerald-50/50 border border-emerald-200 rounded-xl p-4 text-center hover:border-emerald-400 transition shadow-xs">
+                    <div id="statMatch" class="text-2xl font-black text-emerald-700">0</div>
+                    <div class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider mt-0.5">Matches</div>
+                </div>
+                <div onclick="filterFindings('Mismatch')" class="stat-card cursor-pointer bg-rose-50/50 border border-rose-200 rounded-xl p-4 text-center hover:border-rose-400 transition shadow-xs">
+                    <div id="statMismatch" class="text-2xl font-black text-rose-700">0</div>
+                    <div class="text-[11px] font-bold text-rose-600 uppercase tracking-wider mt-0.5">Mismatches</div>
+                </div>
+                <div onclick="filterFindings('Missing')" class="stat-card cursor-pointer bg-amber-50/50 border border-amber-200 rounded-xl p-4 text-center hover:border-amber-400 transition shadow-xs">
+                    <div id="statMissing" class="text-2xl font-black text-amber-700">0</div>
+                    <div class="text-[11px] font-bold text-amber-600 uppercase tracking-wider mt-0.5">Missing Info</div>
+                </div>
+                <div onclick="filterFindings('Needs review')" class="stat-card cursor-pointer bg-orange-50/50 border border-orange-200 rounded-xl p-4 text-center hover:border-orange-400 transition shadow-xs">
+                    <div id="statNeedsReview" class="text-2xl font-black text-orange-700">0</div>
+                    <div class="text-[11px] font-bold text-orange-600 uppercase tracking-wider mt-0.5">Needs Review</div>
+                </div>
+                <div onclick="filterFindings('Unable to verify')" class="stat-card cursor-pointer bg-sky-50/50 border border-sky-200 rounded-xl p-4 text-center hover:border-sky-400 transition shadow-xs">
+                    <div id="statUnable" class="text-2xl font-black text-sky-700">0</div>
+                    <div class="text-[11px] font-bold text-sky-600 uppercase tracking-wider mt-0.5">Unable to Verify</div>
+                </div>
+            </div>
+
+            <!-- Two Column Layout: Extracted Fields (Left) + Verification Findings (Right) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- LEFT COLUMN: Extracted Fields & Human-In-The-Loop Inspector (5 Cols) -->
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                            <div>
+                                <h3 class="font-bold text-slate-900 text-sm">Extracted Structured Fields</h3>
+                                <p class="text-xs text-slate-500">Inspect & edit values with source evidence trace.</p>
+                            </div>
+                            <span id="docCountBadge" class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-semibold"></span>
+                        </div>
+
+                        <!-- Document Selector Tabs -->
+                        <div id="docTabs" class="flex border-b border-slate-200 mt-3 space-x-2 overflow-x-auto text-xs font-semibold"></div>
+
+                        <!-- Fields Table -->
+                        <div class="mt-4 overflow-hidden rounded-lg border border-slate-200">
+                            <div class="max-h-[500px] overflow-y-auto">
+                                <table class="min-w-full divide-y divide-slate-200 text-xs">
+                                    <thead class="bg-slate-50 text-slate-600 sticky top-0">
+                                        <tr>
+                                            <th class="py-2 px-3 text-left font-bold">Field</th>
+                                            <th class="py-2 px-3 text-left font-bold">Value</th>
+                                            <th class="py-2 px-3 text-right font-bold">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="fieldsTableBody" class="divide-y divide-slate-100 font-mono">
+                                        <!-- Injected via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Raw Text Inspector Accordion -->
+                        <div class="mt-4 pt-3 border-t border-slate-200">
+                            <button onclick="toggleRawText()" class="text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center justify-between w-full">
+                                <span>View Raw Extracted Text</span>
+                                <svg id="rawTextChevron" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <pre id="rawTextContent" class="hidden mt-2 p-3 bg-slate-900 text-slate-100 text-[11px] rounded-lg overflow-x-auto max-h-48"></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: Detailed Verification Findings (7 Cols) -->
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+                            <div>
+                                <h3 class="font-bold text-slate-900 text-sm">Deterministic Verification Findings</h3>
+                                <p class="text-xs text-slate-500">Every conclusion is linked directly to source evidence.</p>
+                            </div>
+                            <!-- Filter Pill Bar -->
+                            <div class="flex items-center space-x-1.5 text-xs">
+                                <span class="text-slate-400 font-medium text-[11px]">Filter:</span>
+                                <span id="activeFilterBadge" class="bg-slate-100 text-slate-800 font-bold px-2 py-0.5 rounded">All Checks</span>
+                            </div>
+                        </div>
+
+                        <!-- Findings Feed -->
+                        <div id="findingsContainer" class="mt-4 space-y-3">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Modal for Human-In-The-Loop Field Editing -->
+    <div id="editFieldModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <h3 class="text-base font-bold text-slate-900">Edit Extracted Value (Human Review)</h3>
+            <p class="text-xs text-slate-500 mt-1">Update this field to correct OCR inaccuracies or re-evaluate verification rules.</p>
+            
+            <div class="mt-4 space-y-3">
+                <div>
+                    <label for="editFieldKey" class="text-xs font-semibold text-slate-700">Field</label>
+                    <input type="text" id="editFieldKey" readonly class="mt-1 w-full text-xs font-mono bg-slate-100 border border-slate-200 rounded-lg p-2 text-slate-600">
+                </div>
+                <div>
+                    <label for="editFieldValue" class="text-xs font-semibold text-slate-700">Field Value</label>
+                    <input type="text" id="editFieldValue" class="mt-1 w-full text-xs font-mono bg-white border border-slate-300 rounded-lg p-2 text-slate-900 focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div id="editFieldEvidenceBox" class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-600">
+                    <span class="font-bold">Original Source Snippet:</span>
+                    <div id="editFieldEvidenceText" class="font-mono mt-0.5 text-slate-800"></div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-3">
+                <button onclick="closeEditModal()" class="text-xs font-semibold px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">Cancel</button>
+                <button onclick="submitFieldOverride()" class="text-xs font-semibold px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm">Save & Re-verify</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        let currentCase = null;
+        let selectedDocIndex = 0;
+        let selectedFiles = [];
+        let currentFilter = 'all';
+
+        // Initialize dropzone listeners
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('border-emerald-500', 'bg-emerald-50/20');
+        });
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('border-emerald-500', 'bg-emerald-50/20');
+        });
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('border-emerald-500', 'bg-emerald-50/20');
+            if (e.dataTransfer.files.length > 0) {
+                selectedFiles = Array.from(e.dataTransfer.files);
+                renderSelectedFiles();
+            }
+        });
+
+        function handleFileSelection(e) {
+            if (e.target.files.length > 0) {
+                selectedFiles = Array.from(e.target.files);
+                renderSelectedFiles();
+            }
+        }
+
+        function renderSelectedFiles() {
+            const container = document.getElementById('filesContainer');
+            const listWrapper = document.getElementById('selectedFilesList');
+            container.innerHTML = '';
+            if (selectedFiles.length === 0) {
+                listWrapper.classList.add('hidden');
+                return;
+            }
+            listWrapper.classList.remove('hidden');
+            selectedFiles.forEach((file, idx) => {
+                const el = document.createElement('div');
+                el.className = 'flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-lg text-xs';
+                el.innerHTML = `
+                    <div class="flex items-center space-x-2 truncate">
+                        <span class="text-emerald-600 font-bold">📄</span>
+                        <span class="font-medium text-slate-800 truncate">${file.name}</span>
+                        <span class="text-slate-400 font-mono">(${Math.round(file.size / 1024)} KB)</span>
+                    </div>
+                    <button onclick="removeFile(${idx})" class="text-slate-400 hover:text-rose-600 p-1">&times;</button>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function removeFile(idx) {
+            selectedFiles.splice(idx, 1);
+            renderSelectedFiles();
+        }
+
+        function switchInputTab(tab) {
+            const tabFilesBtn = document.getElementById('tabFilesBtn');
+            const tabTextBtn = document.getElementById('tabTextBtn');
+            const fileUploadContainer = document.getElementById('fileUploadContainer');
+            const textUploadContainer = document.getElementById('textUploadContainer');
+
+            if (tab === 'files') {
+                tabFilesBtn.className = 'pb-3 border-b-2 border-emerald-600 text-emerald-600 flex items-center space-x-2';
+                tabTextBtn.className = 'pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2';
+                fileUploadContainer.classList.remove('hidden');
+                textUploadContainer.classList.add('hidden');
+            } else {
+                tabTextBtn.className = 'pb-3 border-b-2 border-emerald-600 text-emerald-600 flex items-center space-x-2';
+                tabFilesBtn.className = 'pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2';
+                textUploadContainer.classList.remove('hidden');
+                fileUploadContainer.classList.add('hidden');
+            }
+        }
+
+        function toggleScenarioDropdown() {
+            const dd = document.getElementById('scenarioDropdown');
+            dd.classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', (e) => {
+            if (!document.getElementById('scenarioBtn').contains(e.target)) {
+                document.getElementById('scenarioDropdown').classList.add('hidden');
+            }
+        });
+
+        async function loadScenario(scenarioId) {
+            document.getElementById('scenarioDropdown').classList.add('hidden');
+            try {
+                const res = await fetch(`/api/scenarios/${scenarioId}`);
+                if (!res.ok) throw new Error('Failed to load scenario');
+                const data = await res.json();
+                renderCaseResults(data);
+            } catch (err) {
+                alert('Error loading scenario: ' + err.message);
+            }
+        }
+
+        async function verifyPastedText() {
+            const doc1Content = document.getElementById('doc1Content').value.trim();
+            const doc1Filename = document.getElementById('doc1Filename').value.trim() || 'Invoice.txt';
+            const doc2Content = document.getElementById('doc2Content').value.trim();
+            const doc2Filename = document.getElementById('doc2Filename').value.trim() || 'Purchase_Order.txt';
+
+            if (!doc1Content) {
+                alert('Please enter content for Document 1');
+                return;
+            }
+
+            const documents = [{ filename: doc1Filename, content: doc1Content }];
+            if (doc2Content) {
+                documents.push({ filename: doc2Filename, content: doc2Content });
+            }
+
+            try {
+                const res = await fetch('/api/cases/verify-text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: 'Pasted Document Verification', documents })
+                });
+                if (!res.ok) throw new Error('Verification failed');
+                const data = await res.json();
+                renderCaseResults(data);
+            } catch (err) {
+                alert('Error verifying text: ' + err.message);
+            }
+        }
+
+        async function uploadAndVerifyFiles() {
+            if (selectedFiles.length === 0) return;
+            const formData = new FormData();
+            selectedFiles.forEach(f => formData.append('files', f));
+
+            try {
+                const res = await fetch('/api/cases/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!res.ok) throw new Error('Upload verification failed');
+                const data = await res.json();
+                renderCaseResults(data);
+            } catch (err) {
+                alert('Error uploading files: ' + err.message);
+            }
+        }
+
+        function resetToUpload() {
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('uploadSection').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderCaseResults(caseData) {
+            currentCase = caseData;
+            selectedDocIndex = 0;
+            currentFilter = 'all';
+
+            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('resultsSection').classList.remove('hidden');
+
+            // Verdict Styling
+            const banner = document.getElementById('verdictBanner');
+            const badge = document.getElementById('verdictBadge');
+            const title = document.getElementById('caseTitleLabel');
+            const desc = document.getElementById('verdictDescription');
+            document.getElementById('caseIdLabel').innerText = `ID: ${caseData.case_id}`;
+            title.innerText = caseData.title;
+
+            if (caseData.verdict === 'VERIFIED_CONSISTENT') {
+                banner.className = 'p-6 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 bg-emerald-50 border-emerald-300';
+                badge.className = 'text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-600 text-white';
+                badge.innerText = 'VERIFIED CONSISTENT';
+                desc.innerText = 'All deterministic intra-document calculations and cross-document references are fully aligned.';
+            } else if (caseData.verdict === 'INCONSISTENCIES_FOUND') {
+                banner.className = 'p-6 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 bg-rose-50 border-rose-300';
+                badge.className = 'text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-rose-600 text-white';
+                badge.innerText = 'INCONSISTENCIES FOUND';
+                desc.innerText = 'Specific conflicts were discovered in cross-document comparisons or arithmetic calculations.';
+            } else if (caseData.verdict === 'REVIEW_REQUIRED') {
+                banner.className = 'p-6 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 bg-amber-50 border-amber-300';
+                badge.className = 'text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-amber-600 text-white';
+                badge.innerText = 'REVIEW REQUIRED';
+                desc.innerText = 'Mandatory fields or date sequences require human confirmation or revised documents.';
+            } else {
+                banner.className = 'p-6 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 bg-sky-50 border-sky-300';
+                badge.className = 'text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-sky-600 text-white';
+                badge.innerText = caseData.verdict;
+                desc.innerText = 'Additional documentation is required to establish complete cross-verification.';
+            }
+
+            // Summary Stats
+            const stats = caseData.summary_stats || {};
+            document.getElementById('statAll').innerText = caseData.findings.length;
+            document.getElementById('statMatch').innerText = stats['Match'] || 0;
+            document.getElementById('statMismatch').innerText = stats['Mismatch'] || 0;
+            document.getElementById('statMissing').innerText = stats['Missing'] || 0;
+            document.getElementById('statNeedsReview').innerText = stats['Needs review'] || 0;
+            document.getElementById('statUnable').innerText = stats['Unable to verify'] || 0;
+
+            renderDocTabs();
+            renderFindings();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderDocTabs() {
+            const tabsContainer = document.getElementById('docTabs');
+            tabsContainer.innerHTML = '';
+            document.getElementById('docCountBadge').innerText = `${currentCase.documents.length} Document(s)`;
+
+            currentCase.documents.forEach((doc, idx) => {
+                const btn = document.createElement('button');
+                const isSelected = idx === selectedDocIndex;
+                btn.className = `pb-2 px-3 shrink-0 whitespace-nowrap transition border-b-2 ${
+                    isSelected ? 'border-emerald-600 text-emerald-700 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`;
+                btn.innerText = `${doc.filename} (${doc.doc_type})`;
+                btn.onclick = () => {
+                    selectedDocIndex = idx;
+                    renderDocTabs();
+                };
+                tabsContainer.appendChild(btn);
+            });
+
+            renderFieldsTable();
+        }
+
+        function renderFieldsTable() {
+            const currentDoc = currentCase.documents[selectedDocIndex];
+            const tbody = document.getElementById('fieldsTableBody');
+            tbody.innerHTML = '';
+
+            if (!currentDoc || !currentDoc.extracted_fields || Object.keys(currentDoc.extracted_fields).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="py-4 text-center text-slate-400">No fields extracted</td></tr>';
+                return;
+            }
+
+            Object.entries(currentDoc.extracted_fields).forEach(([key, field]) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition';
+                
+                const evSnippet = field.evidence ? field.evidence.snippet : '—';
+                
+                tr.innerHTML = `
+                    <td class="py-2.5 px-3">
+                        <div class="font-bold text-slate-800">${field.label}</div>
+                        <div class="text-[10px] text-slate-400 font-normal truncate max-w-[140px]" title="${evSnippet}">
+                            ${evSnippet}
+                        </div>
+                    </td>
+                    <td class="py-2.5 px-3">
+                        <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-medium">${field.normalized_value}</span>
+                        ${field.is_reviewed ? '<span class="ml-1 text-[9px] bg-blue-100 text-blue-800 px-1 py-0.5 rounded font-sans">Reviewed</span>' : ''}
+                    </td>
+                    <td class="py-2.5 px-3 text-right">
+                        <button onclick="openEditModal('${currentDoc.id}', '${key}', '${field.normalized_value}', '${encodeURIComponent(evSnippet)}')" class="text-emerald-600 hover:text-emerald-800 font-sans font-semibold text-[11px] underline">
+                            Edit
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update raw text preview
+            document.getElementById('rawTextContent').innerText = currentDoc.raw_text || '(No text content)';
+        }
+
+        function toggleRawText() {
+            const el = document.getElementById('rawTextContent');
+            const chev = document.getElementById('rawTextChevron');
+            el.classList.toggle('hidden');
+            chev.classList.toggle('rotate-180');
+        }
+
+        function filterFindings(status) {
+            currentFilter = status;
+            document.getElementById('activeFilterBadge').innerText = status === 'all' ? 'All Checks' : status;
+            renderFindings();
+        }
+
+        function renderFindings() {
+            const container = document.getElementById('findingsContainer');
+            container.innerHTML = '';
+
+            const findings = currentCase.findings || [];
+            const filtered = currentFilter === 'all' 
+                ? findings 
+                : findings.filter(f => f.status.toLowerCase() === currentFilter.toLowerCase());
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">No findings match the selected filter "${currentFilter}".</div>`;
+                return;
+            }
+
+            const statusColors = {
+                'Match': { badge: 'bg-emerald-100 text-emerald-800 border-emerald-200', border: 'border-l-emerald-500' },
+                'Mismatch': { badge: 'bg-rose-100 text-rose-800 border-rose-200', border: 'border-l-rose-500' },
+                'Missing': { badge: 'bg-amber-100 text-amber-800 border-amber-200', border: 'border-l-amber-500' },
+                'Unable to verify': { badge: 'bg-sky-100 text-sky-800 border-sky-200', border: 'border-l-sky-400' },
+                'Needs review': { badge: 'bg-orange-100 text-orange-800 border-orange-200', border: 'border-l-orange-400' },
+                'Not applicable': { badge: 'bg-slate-100 text-slate-700 border-slate-200', border: 'border-l-slate-300' },
+            };
+
+            filtered.forEach(f => {
+                const styling = statusColors[f.status] || { badge: 'bg-slate-100 text-slate-700 border-slate-200', border: 'border-l-slate-400' };
+                const el = document.createElement('div');
+                el.className = `p-4 rounded-xl border border-slate-200 bg-white border-l-4 ${styling.border} shadow-2xs`;
+
+                let evidenceHtml = '';
+                if (f.evidence && f.evidence.length > 0) {
+                    const items = f.evidence.map(ev => `
+                        <div class="mt-1 flex items-start space-x-2 text-[11px] text-slate-600">
+                            <span class="font-bold shrink-0 text-slate-700 font-sans">📄 ${ev.document_name} (p.${ev.page_number || 1}${ev.line_number ? ', l.' + ev.line_number : ''}):</span>
+                            <code class="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded font-mono truncate max-w-sm sm:max-w-md">${ev.snippet}</code>
+                        </div>
+                    `).join('');
+                    evidenceHtml = `<div class="mt-2.5 pt-2 border-t border-slate-100">${items}</div>`;
+                }
+
+                let actionHtml = '';
+                if (f.human_action_needed) {
+                    actionHtml = `
+                        <div class="mt-2 text-xs bg-amber-50 text-amber-900 border border-amber-200 rounded-md p-2 flex items-start space-x-1.5">
+                            <span class="font-bold shrink-0">Action:</span>
+                            <span>${f.human_action_needed}</span>
+                        </div>
+                    `;
+                }
+
+                el.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${f.category} &bull; ${f.rule_id}</span>
+                            <h4 class="text-sm font-bold text-slate-900 mt-0.5">${f.title}</h4>
+                        </div>
+                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full border shrink-0 ${styling.badge}">
+                            ${f.status}
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-700 mt-2 leading-relaxed">${f.explanation}</p>
+                    ${actionHtml}
+                    ${evidenceHtml}
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        // Human Review Edit Modal
+        let activeEditDocId = null;
+        let activeEditKey = null;
+
+        function openEditModal(docId, key, currentValue, encodedSnippet) {
+            activeEditDocId = docId;
+            activeEditKey = key;
+            document.getElementById('editFieldKey').value = key;
+            document.getElementById('editFieldValue').value = currentValue;
+            document.getElementById('editFieldEvidenceText').innerText = decodeURIComponent(encodedSnippet);
+            document.getElementById('editFieldModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editFieldModal').classList.add('hidden');
+        }
+
+        async function submitFieldOverride() {
+            const newValue = document.getElementById('editFieldValue').value.trim();
+            if (!newValue) return;
+
+            try {
+                const res = await fetch('/api/cases/override-and-reverify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        case_id: currentCase.case_id,
+                        document_id: activeEditDocId,
+                        field_key: activeEditKey,
+                        new_value: newValue
+                    })
+                });
+                if (!res.ok) throw new Error('Failed to update field');
+                const updatedData = await res.json();
+                closeEditModal();
+                renderCaseResults(updatedData);
+            } catch (err) {
+                alert('Error updating field: ' + err.message);
+            }
+        }
+
+        function downloadJsonReport() {
+            if (!currentCase) return;
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentCase, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `${currentCase.case_id}_audit_report.json`);
+            dlAnchor.click();
+        }
+
+        function openPrintableHtmlReport() {
+            if (!currentCase) return;
+            window.open(`/api/cases/${currentCase.case_id}/report.html`, '_blank');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+Document Type: Receipt
+Receipt Number: REC-4921
+Issue Date: 2026-08-21
+Vendor Name: Apex Software Solutions
+Currency: INR
+Total: 1180.00
+Payment Method: Corporate Card

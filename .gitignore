@@ -1,3 +1,7 @@
 .venv/
 __pycache__/
-outputs/*.json
+*.pyc
+.pytest_cache/
+outputs/*_report.json
+outputs/*_report.html
+outputs/uploads/

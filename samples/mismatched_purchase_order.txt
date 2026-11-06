@@ -1,0 +1,9 @@
+Document Type: Purchase Order
+PO Number: PO-8801
+Issue Date: 2026-08-25
+Delivery Date: 2026-09-20
+Vendor Name: Apex Global Ltd
+Currency: USD
+Subtotal: 800.00
+Tax: 80.00
+Total: 880.00
