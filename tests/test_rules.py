@@ -95,3 +95,4 @@ Total: 2500.00"""
     assert statuses["Cross-Document Total Comparison"] == VerificationStatus.MISMATCH
     assert statuses["Currency Harmonization"] == VerificationStatus.MISMATCH
     assert statuses["Document Date Timeline Sequence"] == VerificationStatus.MISMATCH
+

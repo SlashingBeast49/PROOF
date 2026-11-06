@@ -84,3 +84,4 @@ def test_api_report_html():
     html_res = client.get(f"/api/cases/{case_id}/report.html")
     assert html_res.status_code == 200
     assert "PROOF Verification Report" in html_res.text
+

@@ -147,3 +147,4 @@ When a human reviewer modifies a field in the UI:
 2. The field is tagged with `is_reviewed = True` and `user_override = <value>`.
 3. The verification pipeline re-evaluates all intra- and cross-document rules against the modified state.
 4. The audit trail records both the initial extraction and the reviewer's modification.
+

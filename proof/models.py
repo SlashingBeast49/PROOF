@@ -102,3 +102,4 @@ class VerificationReport(BaseModel):
         "PROOF does not certify document authenticity. "
         "Findings reflect deterministic checks across extracted information."
     )
+

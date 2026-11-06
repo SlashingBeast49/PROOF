@@ -8,3 +8,4 @@ Currency: INR
 Subtotal: 1000.00
 Tax: 180.00
 Total: 1180.00
+

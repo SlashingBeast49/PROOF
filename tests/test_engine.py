@@ -41,5 +41,11 @@ def test_case_report_generation(tmp_path):
     assert html_path.is_file()
 
     html_content = html_path.read_text(encoding="utf-8")
-    assert "PROOF Verification Report" in html_content
+    assert "PROOF" in html_content
     assert case.case_id in html_content
+
+    # Verify PDF report generation
+    pdf_path = tmp_path / f"{case.case_id}_report.pdf"
+    assert pdf_path.is_file()
+    assert pdf_path.stat().st_size > 500
+

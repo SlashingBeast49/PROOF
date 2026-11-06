@@ -613,3 +613,4 @@ def _check_cross_vendor(doc_a: Document, doc_b: Document) -> Finding:
         evidence=ev,
         human_action_needed="Confirm whether these represent subsidiaries or DBAs of the same supplier.",
     )
+

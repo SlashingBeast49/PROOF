@@ -73,3 +73,4 @@ def verify_text_or_files(sources: List[str], filenames: Optional[List[str]] = No
         doc = parse_document(text, name)
         docs.append(doc)
     return verify_documents(docs, title=title)
+

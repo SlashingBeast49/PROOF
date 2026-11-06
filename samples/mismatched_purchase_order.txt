@@ -7,3 +7,4 @@ Currency: USD
 Subtotal: 800.00
 Tax: 80.00
 Total: 880.00
+

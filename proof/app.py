@@ -313,3 +313,4 @@ def serve_index():
 
 # Mount static assets directory
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+

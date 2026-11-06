@@ -1,181 +1,839 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROOF — Document Intelligence & Verification</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>PROOF — Document verification, without the magic-word marketing</title>
+    <!-- Fonts matching thehsiddarth.com -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        mono: ['"JetBrains Mono"', 'monospace'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            900: '#14532d',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        code, pre { font-family: 'JetBrains Mono', monospace; }
-        .gradient-border {
-            background: linear-gradient(to right, #059669, #0284c7);
-            height: 3px;
+        :root {
+            --bg: #111311;
+            --surface: #171a17;
+            --surface-2: #1d211d;
+            --text: #f2f1eb;
+            --muted: #a8aca2;
+            --line: #343a34;
+            --accent: #b8f36a;
+            --accent-2: #d8ff9c;
+            --warm: #f0e5c8;
+            --max: 1180px;
+            --radius: 18px;
+            --mono: "DM Mono", monospace;
+            --sans: "DM Sans", sans-serif;
+            --red: #f87171;
+            --amber: #fbbf24;
+            --blue: #60a5fa;
+        }
+
+        html[data-theme="light"] {
+            --bg: #f3f2ec;
+            --surface: #fff;
+            --surface-2: #e9e9e2;
+            --text: #151713;
+            --muted: #656a61;
+            --line: #d5d7cd;
+            --accent: #386b13;
+            --accent-2: #274e0e;
+            --warm: #292c27;
+            --red: #dc2626;
+            --amber: #d97706;
+            --blue: #2563eb;
+        }
+
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+        }
+        body, button, input, textarea { font: inherit; }
+        a { color: inherit; text-decoration: none; }
+        button { color: inherit; background: none; border: none; cursor: pointer; }
+        ::selection { background: var(--accent); color: #10120f; }
+
+        .grain {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: .055;
+            z-index: 20;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
+        }
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: var(--max);
+            margin: auto;
+            padding: 18px 24px;
+            background: color-mix(in srgb, var(--bg) 88%, transparent);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            letter-spacing: -.02em;
+        }
+
+        .brand-mark {
+            display: grid;
+            place-items: center;
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--line);
+            border-radius: 50%;
+            font: 600 11px var(--mono);
+            color: var(--accent);
+            background: var(--surface);
+        }
+
+        .desktop-nav {
+            display: flex;
+            gap: 22px;
+            font: 400 12px var(--mono);
+            text-transform: lowercase;
+        }
+
+        .desktop-nav a, .terminal-link {
+            color: var(--muted);
+            transition: color .2s;
+        }
+
+        .desktop-nav a:hover, .terminal-link:hover {
+            color: var(--text);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .terminal-link {
+            font: 400 12px var(--mono);
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--surface);
+        }
+
+        .icon-button {
+            width: 34px;
+            height: 34px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            transition: border-color .2s;
+        }
+        .icon-button:hover { border-color: var(--accent); }
+
+        .section {
+            max-width: var(--max);
+            margin: auto;
+            padding: 90px 24px;
+        }
+
+        .hero {
+            min-height: calc(100vh - 75px);
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) 320px;
+            align-content: center;
+            gap: 60px;
+            position: relative;
+            padding-top: 40px;
+            padding-bottom: 60px;
+        }
+
+        .kicker, .eyebrow, .index, .meta-tag {
+            font: 500 11px var(--mono);
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+
+        .kicker {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--muted);
+            margin: 0 0 24px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 15%, transparent);
+            animation: pulse 2.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .6; transform: scale(.9); }
+        }
+
+        h1 {
+            font-size: clamp(48px, 7.5vw, 92px);
+            line-height: .92;
+            letter-spacing: -.065em;
+            margin-bottom: 26px;
+            margin-top: 0;
+        }
+
+        h1 em {
+            font-family: "Instrument Serif", serif;
+            font-weight: 400;
+            font-style: italic;
+            letter-spacing: -.03em;
+            color: var(--warm);
+        }
+
+        .hero-intro {
+            font-size: clamp(16px, 1.8vw, 19px);
+            max-width: 620px;
+            color: var(--muted);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-top: 36px;
+            flex-wrap: wrap;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 22px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: transform .15s, opacity .15s;
+        }
+        .button:hover { transform: translateY(-1px); }
+        .button-primary { background: var(--accent); color: #11150e; }
+        .button-secondary { border: 1px solid var(--line); background: var(--surface); color: var(--text); }
+        .button-secondary:hover { border-color: var(--accent); }
+
+        .hero-note {
+            align-self: center;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            padding: 22px;
+            transform: rotate(1.4deg);
+            box-shadow: 10px 12px 0 var(--surface-2);
+            border-radius: 4px;
+        }
+
+        .note-top {
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted);
+            font: 500 10px var(--mono);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+
+        .hero-note p {
+            font-size: 13.5px;
+            margin: 16px 0 0;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .note-rule {
+            border-top: 1px dashed var(--line);
+            margin-top: 16px;
+            padding-top: 12px;
+            font: 400 11px var(--mono);
+            color: var(--accent);
+        }
+
+        .ticker {
+            border-block: 1px solid var(--line);
+            overflow: hidden;
+            display: flex;
+            gap: 30px;
+            white-space: nowrap;
+            padding: 12px 0;
+            color: var(--muted);
+            font: 500 10px var(--mono);
+            letter-spacing: .12em;
+            justify-content: center;
+            background: var(--surface);
+        }
+
+        .section-heading {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: end;
+            margin-bottom: 45px;
+        }
+
+        .section-heading .index { color: var(--accent); }
+        .section-heading h2 {
+            grid-column: 1 / -1;
+            font-size: clamp(38px, 5.5vw, 70px);
+            line-height: .95;
+            letter-spacing: -.06em;
+            margin: 8px 0 0;
+        }
+        .section-heading p {
+            grid-column: 2;
+            color: var(--muted);
+            margin: 0;
+            font-size: 15px;
+        }
+
+        /* Scenarios Cards */
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            margin-bottom: 45px;
+        }
+
+        .scenario-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            padding: 24px;
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 200px;
+            cursor: pointer;
+            transition: border-color .2s, transform .2s, background .2s;
+            position: relative;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            background: var(--surface-2);
+        }
+
+        .scenario-card.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px var(--accent);
+        }
+
+        .scenario-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font: 500 10px var(--mono);
+            color: var(--muted);
+            margin-bottom: 14px;
+        }
+
+        .scenario-card h3 {
+            font-size: 19px;
+            letter-spacing: -.03em;
+            margin: 0 0 8px;
+        }
+
+        .scenario-card p {
+            font-size: 13px;
+            color: var(--muted);
+            margin: 0;
+            line-height: 1.45;
+        }
+
+        .scenario-arrow {
+            align-self: flex-end;
+            margin-top: 14px;
+            font: 600 13px var(--mono);
+            color: var(--accent);
+        }
+
+        /* Workspace Grid */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .panel-box {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 24px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .panel-title {
+            font: 600 12px var(--mono);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--text);
+        }
+
+        .file-dropzone {
+            border: 1px dashed var(--line);
+            border-radius: 12px;
+            padding: 34px 20px;
+            text-align: center;
+            background: var(--bg);
+            cursor: pointer;
+            transition: border-color .2s, background .2s;
+        }
+        .file-dropzone:hover, .file-dropzone.dragover {
+            border-color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 5%, var(--bg));
+        }
+
+        .file-dropzone p {
+            margin: 8px 0 0;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .code-input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 14px;
+            font: 400 12px var(--mono);
+            color: var(--text);
+            resize: vertical;
+            min-height: 220px;
+            outline: none;
+            line-height: 1.5;
+        }
+        .code-input:focus { border-color: var(--accent); }
+
+        .selected-file-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            padding: 6px 12px;
+            border-radius: 999px;
+            font: 400 11px var(--mono);
+            margin: 4px;
+        }
+
+        /* Results / Findings Stream */
+        .verdict-banner {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .verdict-tag {
+            display: inline-block;
+            font: 600 11px var(--mono);
+            padding: 6px 14px;
+            border-radius: 999px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+        .verdict-tag.pass { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); border: 1px solid var(--accent); }
+        .verdict-tag.fail { background: color-mix(in srgb, var(--red) 15%, transparent); color: var(--red); border: 1px solid var(--red); }
+        .verdict-tag.warn { background: color-mix(in srgb, var(--amber) 15%, transparent); color: var(--amber); border: 1px solid var(--amber); }
+
+        .stats-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color .2s;
+        }
+        .stat-box:hover, .stat-box.active { border-color: var(--accent); }
+        .stat-value { font-size: 26px; font-weight: 700; font-family: var(--mono); letter-spacing: -.03em; }
+        .stat-label { font: 500 10px var(--mono); color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+
+        /* Findings Cards */
+        .finding-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 14px;
+            position: relative;
+        }
+
+        .finding-card.match { border-left: 3px solid var(--accent); }
+        .finding-card.mismatch { border-left: 3px solid var(--red); }
+        .finding-card.missing, .finding-card.needs-review { border-left: 3px solid var(--amber); }
+        .finding-card.unable-to-verify { border-left: 3px solid var(--blue); }
+
+        .finding-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .finding-status-badge {
+            font: 600 10px var(--mono);
+            padding: 3px 10px;
+            border-radius: 999px;
+            text-transform: uppercase;
+        }
+        .status-match { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+        .status-mismatch { background: color-mix(in srgb, var(--red) 15%, transparent); color: var(--red); }
+        .status-missing { background: color-mix(in srgb, var(--amber) 15%, transparent); color: var(--amber); }
+        .status-needs-review { background: color-mix(in srgb, var(--amber) 15%, transparent); color: var(--amber); }
+        .status-unable { background: color-mix(in srgb, var(--blue) 15%, transparent); color: var(--blue); }
+
+        .finding-explanation {
+            font-size: 13.5px;
+            color: var(--text);
+            margin: 6px 0 10px;
+            line-height: 1.45;
+        }
+
+        .evidence-quote {
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font: 400 11px var(--mono);
+            color: var(--text);
+            margin-top: 6px;
+            overflow-x: auto;
+        }
+
+        .evidence-quote span {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        /* Fields Table */
+        .fields-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+            font-family: var(--mono);
+        }
+
+        .fields-table th {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-weight: 500;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .fields-table td {
+            padding: 12px;
+            border-bottom: 1px solid color-mix(in srgb, var(--line) 40%, transparent);
+            vertical-align: top;
+        }
+
+        /* Terminal Window matching thehsiddarth.com */
+        .terminal-window {
+            background: #090b09;
+            border: 1px solid #2f352f;
+            box-shadow: 12px 12px 0 var(--surface-2);
+            font-family: var(--mono);
+            overflow: hidden;
+            border-radius: 12px;
+            margin-top: 24px;
+        }
+
+        .terminal-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-bottom: 1px solid #2f352f;
+            color: #7e857c;
+            font-size: 10px;
+        }
+
+        .terminal-output {
+            height: 280px;
+            overflow: auto;
+            padding: 18px;
+            font-size: 12px;
+            color: #cfd5ca;
+            line-height: 1.6;
+        }
+
+        .terminal-line { margin: 0 0 6px; white-space: pre-wrap; }
+        .terminal-line.cmd { color: var(--accent); }
+        .terminal-line.success { color: var(--accent); }
+        .terminal-line.warn { color: var(--amber); }
+        .terminal-line.error { color: var(--red); }
+
+        .terminal-form {
+            display: flex;
+            gap: 8px;
+            padding: 12px 18px;
+            border-top: 1px solid #2f352f;
+            background: #0d0f0d;
+        }
+
+        .terminal-form label { color: var(--accent); font-size: 12px; white-space: nowrap; }
+        .terminal-form input {
+            flex: 1;
+            background: transparent;
+            border: 0;
+            outline: 0;
+            color: #f0f2eb;
+            font: 400 12px var(--mono);
+        }
+
+        /* Site Footer */
+        .site-footer {
+            max-width: var(--max);
+            margin: auto;
+            padding: 35px 24px 50px;
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            color: var(--muted);
+            font: 400 11px var(--mono);
+            border-top: 1px solid var(--line);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: #00000088;
+            backdrop-filter: blur(6px);
+            display: grid;
+            place-items: center;
+            z-index: 100;
+            padding: 20px;
+        }
+        .modal-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 28px;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        @media (max-width: 900px) {
+            .hero { grid-template-columns: 1fr; gap: 40px; padding-top: 20px; }
+            .hero-note { transform: none; box-shadow: none; max-width: 100%; }
+            .workspace-grid { grid-template-columns: 1fr; }
+            .section-heading { grid-template-columns: 1fr; }
+            .section-heading p { grid-column: 1; }
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
-    <div class="gradient-border"></div>
+<body>
+    <div class="grain" aria-hidden="true"></div>
 
-    <!-- Top Navigation Header -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-lg bg-slate-950 text-white flex items-center justify-center font-bold text-lg tracking-wider shadow-sm">
-                    P
-                </div>
-                <div>
-                    <div class="flex items-center space-x-2">
-                        <span class="font-extrabold text-xl tracking-tight text-slate-900">PROOF</span>
-                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">v0.1.0</span>
-                    </div>
-                    <p class="text-xs text-slate-500 font-medium">Document verification, without the magic-word marketing.</p>
-                </div>
-            </div>
+    <!-- Site Header -->
+    <header class="site-header">
+        <a class="brand" href="#home">
+            <span class="brand-mark">PR</span>
+            <span>PROOF</span>
+        </a>
 
-            <!-- Quick Benchmark Selector & Actions -->
-            <div class="flex items-center space-x-3">
-                <div class="hidden sm:flex items-center space-x-2 text-xs text-slate-600 bg-slate-100 px-3 py-1.5 rounded-md border border-slate-200">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Deterministic Engine Online</span>
-                </div>
+        <nav class="desktop-nav">
+            <a href="#verify">verify</a>
+            <a href="#scenarios">benchmarks</a>
+            <a href="#terminal">terminal</a>
+            <a href="#about">philosophy</a>
+        </nav>
 
-                <div class="relative">
-                    <button id="scenarioBtn" onclick="toggleScenarioDropdown()" class="inline-flex items-center text-xs font-semibold bg-white border border-slate-300 hover:border-slate-400 text-slate-700 px-3 py-2 rounded-lg transition shadow-xs">
-                        <span>🧪 Load Demo Scenarios</span>
-                        <svg class="w-4 h-4 ml-1.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                    <div id="scenarioDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50">
-                        <div class="px-3 py-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100">Benchmark Scenarios</div>
-                        <button onclick="loadScenario('perfect_match')" class="w-full text-left px-3 py-2.5 text-xs hover:bg-slate-50 flex flex-col">
-                            <span class="font-bold text-emerald-700">1. Invoice & PO Harmonized</span>
-                            <span class="text-slate-500 mt-0.5">Matching totals, PO reference, valid dates.</span>
-                        </button>
-                        <button onclick="loadScenario('amount_and_po_mismatch')" class="w-full text-left px-3 py-2.5 text-xs hover:bg-slate-50 flex flex-col border-t border-slate-100">
-                            <span class="font-bold text-rose-700">2. Total Discrepancy & PO Conflict</span>
-                            <span class="text-slate-500 mt-0.5">Billed amount differs, PO id mismatch, date order fault.</span>
-                        </button>
-                        <button onclick="loadScenario('incomplete_tax_error')" class="w-full text-left px-3 py-2.5 text-xs hover:bg-slate-50 flex flex-col border-t border-slate-100">
-                            <span class="font-bold text-amber-700">3. Missing Fields & Math Anomaly</span>
-                            <span class="text-slate-500 mt-0.5">Missing tax & due date, subtotal arithmetic mismatch.</span>
-                        </button>
-                        <button onclick="loadScenario('currency_clash')" class="w-full text-left px-3 py-2.5 text-xs hover:bg-slate-50 flex flex-col border-t border-slate-100">
-                            <span class="font-bold text-indigo-700">4. Currency Clash (INR vs USD)</span>
-                            <span class="text-slate-500 mt-0.5">Conflicting currencies across procurement documents.</span>
-                        </button>
-                    </div>
-                </div>
-
-                <button onclick="resetToUpload()" class="text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-lg transition shadow-xs flex items-center space-x-1.5">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    <span>New Case</span>
-                </button>
-            </div>
+        <div class="header-actions">
+            <a class="terminal-link" href="#terminal"><span>⌘</span> terminal</a>
+            <button id="themeToggle" class="icon-button" type="button" aria-label="Toggle theme">◐</button>
+            <a href="#verify" class="button button-primary" style="padding: 7px 15px; font-size: 12px; font-family: var(--mono);">new verify</a>
         </div>
     </header>
 
-    <!-- Philosophy Banner -->
-    <aside aria-label="Core Philosophy" class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-slate-200 text-xs py-2.5 px-4 border-b border-slate-700">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <span class="font-bold text-emerald-400 uppercase tracking-wider text-[11px]">Core Philosophy:</span>
-                <span>PROOF does not pretend to certify authenticity. It shows what it extracted, what it checked, what it found, and what it could not establish.</span>
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="section hero">
+            <div class="hero-copy">
+                <p class="kicker">
+                    <span class="status-dot"></span>
+                    <span>Document intelligence · deterministic verification · v0.1.0</span>
+                </p>
+
+                <h1>Document verification, without the <em>magic-word marketing</em>.</h1>
+
+                <p class="hero-intro">
+                    PROOF does not pretend to certify authenticity. It extracts facts from your documents, executes deterministic mathematical and cross-document comparison rules, and links every finding directly to source evidence.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="#verify" class="button button-primary">Open Verification Studio &rarr;</a>
+                    <a href="#scenarios" class="button button-secondary">Run Benchmark Scenarios</a>
+                </div>
             </div>
-            <a href="https://github.com/SlashingBeast49/PROOF" target="_blank" class="hidden md:inline-flex items-center text-slate-400 hover:text-white transition">
-                <span>GitHub</span>
-                <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-            </a>
+
+            <aside class="hero-note" aria-label="Core Philosophy Note">
+                <div class="note-top">
+                    <span>Axiom // V0.1</span>
+                    <span>Zero Hallucination</span>
+                </div>
+                <p>
+                    "A mismatch is not automatically evidence of fraud. PROOF simply shows what was extracted, what was evaluated, and what could not be established."
+                </p>
+                <div class="note-rule">
+                    &bull; Deterministic Python & JavaScript engine
+                </div>
+            </aside>
+        </section>
+
+        <!-- Ticker -->
+        <div class="ticker" aria-hidden="true">
+            <span>INTRA-DOCUMENT MATH</span> &bull; 
+            <span>CROSS-DOCUMENT CONSISTENCY</span> &bull; 
+            <span>PO REFERENCE MATCHING</span> &bull; 
+            <span>EVIDENCE CITATIONS</span> &bull; 
+            <span>HUMAN-IN-THE-LOOP</span> &bull; 
+            <span>AUDIT TRAIL</span>
         </div>
-    </aside>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
-        
-        <!-- SECTION 1: UPLOAD / INPUT PANEL -->
-        <div id="uploadSection" class="space-y-6">
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-                <div class="p-6 sm:p-8">
-                    <div class="max-w-3xl">
-                        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Verify Document Consistency</h2>
-                        <p class="text-sm text-slate-600 mt-1">Upload multiple documents (PDFs, text files) or paste text directly to run cross-document consistency checks and audit calculations.</p>
+        <!-- Scenarios Section -->
+        <section id="scenarios" class="section">
+            <div class="section-heading">
+                <div>
+                    <span class="index">01</span>
+                    <span class="eyebrow">Interactive Benchmarks</span>
+                </div>
+                <h2>Explore <em>sample cases</em>.</h2>
+                <p>Click any benchmark to load synthetic procurement documents into the verification engine instantly.</p>
+            </div>
+
+            <div class="scenarios-grid">
+                <div class="scenario-card" onclick="loadScenario('perfect_match')">
+                    <div class="scenario-meta">
+                        <span>SCENARIO 1</span>
+                        <span style="color: var(--accent);">HARMONIZED</span>
                     </div>
+                    <h3>Invoice & PO Matched</h3>
+                    <p>Clean match: amounts, PO numbers, dates, and INR currency fully agree across documents.</p>
+                    <span class="scenario-arrow">Load & Verify &rarr;</span>
+                </div>
 
-                    <!-- Input Method Selector -->
-                    <div class="flex border-b border-slate-200 mt-6 space-x-6 text-sm font-semibold">
-                        <button id="tabFilesBtn" onclick="switchInputTab('files')" class="pb-3 border-b-2 border-emerald-600 text-emerald-600 flex items-center space-x-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                            <span>Upload Files (PDF / TXT)</span>
-                        </button>
-                        <button id="tabTextBtn" onclick="switchInputTab('text')" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                            <span>Paste Document Text Directly</span>
-                        </button>
+                <div class="scenario-card" onclick="loadScenario('amount_and_po_mismatch')">
+                    <div class="scenario-meta">
+                        <span>SCENARIO 2</span>
+                        <span style="color: var(--red);">DISCREPANCY</span>
                     </div>
+                    <h3>Amount & PO Conflict</h3>
+                    <p>Billed amount differs ($1,350 vs $1,000), wrong PO reference, and date chronology fault.</p>
+                    <span class="scenario-arrow">Load & Verify &rarr;</span>
+                </div>
 
-                    <!-- Mode A: File Upload Dropzone -->
-                    <div id="fileUploadContainer" class="mt-6">
-                        <div id="dropzone" class="border-2 border-dashed border-slate-300 hover:border-emerald-500 bg-slate-50/50 hover:bg-emerald-50/20 rounded-xl p-8 text-center transition cursor-pointer">
-                            <input type="file" id="fileInput" multiple accept=".pdf,.txt,.md,.csv" class="hidden" onchange="handleFileSelection(event)">
-                            <div class="max-w-md mx-auto flex flex-col items-center">
-                                <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                                </div>
-                                <div class="text-sm font-semibold text-slate-800">
-                                    <span class="text-emerald-700 hover:underline">Click to browse files</span> or drag and drop here
-                                </div>
-                                <p class="text-xs text-slate-500 mt-1">Supports PDF invoices, purchase orders, contracts, receipts, or raw .txt files.</p>
+                <div class="scenario-card" onclick="loadScenario('incomplete_tax_error')">
+                    <div class="scenario-meta">
+                        <span>SCENARIO 3</span>
+                        <span style="color: var(--amber);">MISSING DATA</span>
+                    </div>
+                    <h3>Missing Tax & Math Error</h3>
+                    <p>Missing tax and due date lines, with subtotal and stated total mathematically conflicting.</p>
+                    <span class="scenario-arrow">Load & Verify &rarr;</span>
+                </div>
+
+                <div class="scenario-card" onclick="loadScenario('currency_clash')">
+                    <div class="scenario-meta">
+                        <span>SCENARIO 4</span>
+                        <span style="color: var(--blue);">CURRENCY CLASH</span>
+                    </div>
+                    <h3>Currency Clash (INR / USD)</h3>
+                    <p>Detects international currency conflict between vendor invoice and domestic purchase order.</p>
+                    <span class="scenario-arrow">Load & Verify &rarr;</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Verification Studio Section -->
+        <section id="verify" class="section" style="padding-top: 30px;">
+            <div class="section-heading">
+                <div>
+                    <span class="index">02</span>
+                    <span class="eyebrow">Studio</span>
+                </div>
+                <h2>Document <em>verification studio</em>.</h2>
+                <p>Drop PDF or text documents, or paste content directly to run intra-doc and cross-doc verification.</p>
+            </div>
+
+            <!-- Ingestion Panels -->
+            <div class="panel-box">
+                <div class="panel-header">
+                    <span class="panel-title">Ingest Documents (PDF / TXT)</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="switchMode('paste')" id="btnModePaste" class="button button-secondary" style="padding: 6px 14px; font-size: 11px; font-family: var(--mono); border-color: var(--accent);">Direct Text Editor</button>
+                        <button onclick="switchMode('files')" id="btnModeFiles" class="button button-secondary" style="padding: 6px 14px; font-size: 11px; font-family: var(--mono);">File Upload (PDF)</button>
+                    </div>
+                </div>
+
+                <!-- Mode 1: File Dropzone -->
+                <div id="dropzoneMode" style="display: none;">
+                    <div class="file-dropzone" id="fileDropzone">
+                        <input type="file" id="fileInput" multiple accept=".pdf,.txt,.md,.csv" style="display: none;">
+                        <div style="font-size: 28px; margin-bottom: 8px;">📄</div>
+                        <div style="font-weight: 600;">Drag & drop your files here, or <span style="color: var(--accent); text-decoration: underline;">browse</span></div>
+                        <p>Upload 1 or more invoices, purchase orders, or receipts (PDF or TXT)</p>
+                    </div>
+                    <div id="fileListContainer" style="margin-top: 14px; display: flex; flex-wrap: wrap;"></div>
+                </div>
+
+                <!-- Mode 2: Multi-Document Text Editor -->
+                <div id="pasteMode">
+                    <div class="workspace-grid">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font: 500 11px var(--mono); color: var(--muted);">
+                                <span>DOCUMENT 1 (e.g. INVOICE)</span>
+                                <input type="text" id="doc1Name" value="Invoice_INV-2026-001.txt" style="background: transparent; border: 1px solid var(--line); color: var(--text); padding: 2px 8px; border-radius: 4px; font-size: 10px;">
                             </div>
-                        </div>
-
-                        <!-- Selected Files List -->
-                        <div id="selectedFilesList" class="mt-4 space-y-2 hidden">
-                            <div class="text-xs font-bold text-slate-600 uppercase tracking-wider">Ready to Verify:</div>
-                            <div id="filesContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-                            <div class="pt-4 flex justify-end">
-                                <button onclick="uploadAndVerifyFiles()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg shadow-sm transition flex items-center space-x-2">
-                                    <span>Verify Selected Documents</span>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Mode B: Direct Text Paste (Multi-document support) -->
-                    <div id="textUploadContainer" class="mt-6 hidden">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <!-- Document A -->
-                            <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50">
-                                <div class="flex items-center justify-between mb-2">
-                                    <label for="doc1Filename" class="text-xs font-bold text-slate-700 uppercase tracking-wider">Document 1 (e.g. Invoice)</label>
-                                    <input type="text" id="doc1Filename" value="Invoice_001.txt" class="text-xs border border-slate-300 rounded px-2 py-1 font-mono text-slate-700 w-44">
-                                </div>
-                                <textarea id="doc1Content" rows="11" class="w-full text-xs font-mono p-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="Paste invoice text here...">Document Type: Invoice
+                            <textarea id="doc1Text" class="code-input" spellcheck="false">Document Type: Invoice
 Invoice Number: INV-2026-001
 PO Reference: PO-9942
 Issue Date: 2026-08-20
@@ -186,15 +844,14 @@ Currency: INR
 Subtotal: 1000.00
 Tax: 180.00
 Total: 1180.00</textarea>
-                            </div>
+                        </div>
 
-                            <!-- Document B -->
-                            <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50">
-                                <div class="flex items-center justify-between mb-2">
-                                    <label for="doc2Filename" class="text-xs font-bold text-slate-700 uppercase tracking-wider">Document 2 (e.g. Purchase Order)</label>
-                                    <input type="text" id="doc2Filename" value="Purchase_Order_9942.txt" class="text-xs border border-slate-300 rounded px-2 py-1 font-mono text-slate-700 w-44">
-                                </div>
-                                <textarea id="doc2Content" rows="11" class="w-full text-xs font-mono p-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="Paste purchase order or receipt text here...">Document Type: Purchase Order
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font: 500 11px var(--mono); color: var(--muted);">
+                                <span>DOCUMENT 2 (e.g. PURCHASE ORDER)</span>
+                                <input type="text" id="doc2Name" value="Purchase_Order_PO-9942.txt" style="background: transparent; border: 1px solid var(--line); color: var(--text); padding: 2px 8px; border-radius: 4px; font-size: 10px;">
+                            </div>
+                            <textarea id="doc2Text" class="code-input" spellcheck="false">Document Type: Purchase Order
 PO Number: PO-9942
 Issue Date: 2026-08-15
 Delivery Date: 2026-09-15
@@ -204,586 +861,807 @@ Currency: INR
 Subtotal: 1000.00
 Tax: 180.00
 Total: 1180.00</textarea>
-                            </div>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="mt-4 flex justify-between items-center">
-                            <span class="text-xs text-slate-500">You can also leave Document 2 empty to test single-document verification rules.</span>
-                            <button onclick="verifyPastedText()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-6 py-2.5 rounded-lg shadow-sm transition flex items-center space-x-2">
-                                <span>Run Deterministic Verification</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            </button>
+                <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 12px;">
+                    <button onclick="executeVerification()" class="button button-primary">
+                        <span>Execute Deterministic Verification</span> &rarr;
+                    </button>
+                </div>
+            </div>
+
+            <!-- Verification Results Live View -->
+            <div id="resultsWrapper" style="margin-top: 40px; display: none;">
+                <!-- Verdict Banner -->
+                <div class="verdict-banner">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                            <span id="verdictBadge" class="verdict-tag pass">VERIFIED CONSISTENT</span>
+                            <span id="caseIdTag" style="font: 400 11px var(--mono); color: var(--muted);"></span>
+                        </div>
+                        <h3 id="caseTitleDisplay" style="margin: 0; font-size: 22px; letter-spacing: -.03em;"></h3>
+                        <p id="verdictExplanation" style="margin: 6px 0 0; color: var(--muted); font-size: 13.5px;"></p>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="downloadJsonReport()" class="button button-secondary" style="font-size: 12px; font-family: var(--mono); padding: 9px 16px;">Export JSON</button>
+                        <button onclick="openPrintableReport()" class="button button-primary" style="font-size: 12px; font-family: var(--mono); padding: 9px 16px;">Print Audit Report</button>
+                    </div>
+                </div>
+
+                <!-- Stats Strip -->
+                <div class="stats-strip">
+                    <div class="stat-box" onclick="filterFindings('all')">
+                        <div id="statAll" class="stat-value">0</div>
+                        <div class="stat-label">Total Checks</div>
+                    </div>
+                    <div class="stat-box" onclick="filterFindings('Match')">
+                        <div id="statMatch" class="stat-value" style="color: var(--accent);">0</div>
+                        <div class="stat-label">Matches</div>
+                    </div>
+                    <div class="stat-box" onclick="filterFindings('Mismatch')">
+                        <div id="statMismatch" class="stat-value" style="color: var(--red);">0</div>
+                        <div class="stat-label">Mismatches</div>
+                    </div>
+                    <div class="stat-box" onclick="filterFindings('Missing')">
+                        <div id="statMissing" class="stat-value" style="color: var(--amber);">0</div>
+                        <div class="stat-label">Missing</div>
+                    </div>
+                    <div class="stat-box" onclick="filterFindings('Needs review')">
+                        <div id="statReview" class="stat-value" style="color: var(--amber);">0</div>
+                        <div class="stat-label">Needs Review</div>
+                    </div>
+                    <div class="stat-box" onclick="filterFindings('Unable to verify')">
+                        <div id="statUnable" class="stat-value" style="color: var(--blue);">0</div>
+                        <div class="stat-label">Unable to Verify</div>
+                    </div>
+                </div>
+
+                <!-- Split Workspace: Extracted Fields (Left) & Findings (Right) -->
+                <div class="workspace-grid">
+                    <!-- Left: Extracted Fields & Human-In-The-Loop Review -->
+                    <div class="panel-box">
+                        <div class="panel-header">
+                            <span class="panel-title">Extracted Structured Fields</span>
+                            <span id="docCountPill" class="meta-tag"></span>
+                        </div>
+                        <div id="docTabButtons" style="display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto;"></div>
+
+                        <div style="overflow-x: auto;">
+                            <table class="fields-table">
+                                <thead>
+                                    <tr>
+                                        <th>Field</th>
+                                        <th>Value</th>
+                                        <th style="text-align: right;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fieldsTableRows"></tbody>
+                            </table>
                         </div>
                     </div>
 
+                    <!-- Right: Findings with Source Evidence -->
+                    <div class="panel-box">
+                        <div class="panel-header">
+                            <span class="panel-title">Verification Findings & Evidence</span>
+                            <span id="activeFilterLabel" class="meta-tag" style="color: var(--accent);">ALL CHECKS</span>
+                        </div>
+                        <div id="findingsContainer"></div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- SECTION 2: VERIFICATION RESULTS DASHBOARD (Initially Hidden) -->
-        <div id="resultsSection" class="space-y-6 hidden">
-            
-            <!-- Verdict Banner -->
-            <div id="verdictBanner" class="p-6 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- Terminal Section matching thehsiddarth.com -->
+        <section id="terminal" class="section">
+            <div class="section-heading">
                 <div>
-                    <div class="flex items-center space-x-2">
-                        <span id="verdictBadge" class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full"></span>
-                        <span id="caseIdLabel" class="text-xs font-mono text-slate-500"></span>
-                    </div>
-                    <h2 id="caseTitleLabel" class="text-2xl font-extrabold text-slate-900 mt-1"></h2>
-                    <p id="verdictDescription" class="text-sm text-slate-600 mt-1"></p>
+                    <span class="index">03</span>
+                    <span class="eyebrow">Interactive CLI</span>
                 </div>
-
-                <div class="flex items-center space-x-3 shrink-0">
-                    <button onclick="downloadJsonReport()" class="inline-flex items-center text-xs font-semibold bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-2 rounded-lg transition shadow-xs">
-                        <svg class="w-4 h-4 mr-1.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        <span>Export JSON</span>
-                    </button>
-                    <button onclick="openPrintableHtmlReport()" class="inline-flex items-center text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg transition shadow-xs">
-                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        <span>Print Audit Report</span>
-                    </button>
-                </div>
+                <h2>Terminal <em>interface</em>.</h2>
+                <p>Execute deterministic verification, run benchmark scenarios, or query platform status directly from the command line.</p>
             </div>
 
-            <!-- Summary Metrics Cards -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                <div onclick="filterFindings('all')" class="stat-card cursor-pointer bg-white border border-slate-200 rounded-xl p-4 text-center hover:border-slate-400 transition shadow-xs">
-                    <div id="statAll" class="text-2xl font-black text-slate-800">0</div>
-                    <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-0.5">Total Checks</div>
+            <div class="terminal-window">
+                <div class="terminal-bar">
+                    <span>PROOF_VERIFY_CLI &mdash; v0.1.0</span>
+                    <span>TYPE "help" FOR COMMANDS</span>
                 </div>
-                <div onclick="filterFindings('Match')" class="stat-card cursor-pointer bg-emerald-50/50 border border-emerald-200 rounded-xl p-4 text-center hover:border-emerald-400 transition shadow-xs">
-                    <div id="statMatch" class="text-2xl font-black text-emerald-700">0</div>
-                    <div class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider mt-0.5">Matches</div>
+                <div id="terminalOutput" class="terminal-output">
+                    <div class="terminal-line">PROOF Terminal initialized. Ready for commands.</div>
+                    <div class="terminal-line" style="color: var(--muted);">Type <span style="color: var(--accent);">demo</span> to run benchmark cases, <span style="color: var(--accent);">verify</span> to analyze active text, or <span style="color: var(--accent);">help</span> for all commands.</div>
                 </div>
-                <div onclick="filterFindings('Mismatch')" class="stat-card cursor-pointer bg-rose-50/50 border border-rose-200 rounded-xl p-4 text-center hover:border-rose-400 transition shadow-xs">
-                    <div id="statMismatch" class="text-2xl font-black text-rose-700">0</div>
-                    <div class="text-[11px] font-bold text-rose-600 uppercase tracking-wider mt-0.5">Mismatches</div>
+                <form class="terminal-form" onsubmit="handleTerminalSubmit(event)">
+                    <label for="terminalInput">&gt; proof</label>
+                    <input type="text" id="terminalInput" placeholder="try: demo, verify, benchmark 1, clear, philosophy" autocomplete="off">
+                </form>
+            </div>
+        </section>
+
+        <!-- Philosophy Section -->
+        <section id="about" class="section">
+            <div class="section-heading">
+                <div>
+                    <span class="index">04</span>
+                    <span class="eyebrow">Philosophy</span>
                 </div>
-                <div onclick="filterFindings('Missing')" class="stat-card cursor-pointer bg-amber-50/50 border border-amber-200 rounded-xl p-4 text-center hover:border-amber-400 transition shadow-xs">
-                    <div id="statMissing" class="text-2xl font-black text-amber-700">0</div>
-                    <div class="text-[11px] font-bold text-amber-600 uppercase tracking-wider mt-0.5">Missing Info</div>
-                </div>
-                <div onclick="filterFindings('Needs review')" class="stat-card cursor-pointer bg-orange-50/50 border border-orange-200 rounded-xl p-4 text-center hover:border-orange-400 transition shadow-xs">
-                    <div id="statNeedsReview" class="text-2xl font-black text-orange-700">0</div>
-                    <div class="text-[11px] font-bold text-orange-600 uppercase tracking-wider mt-0.5">Needs Review</div>
-                </div>
-                <div onclick="filterFindings('Unable to verify')" class="stat-card cursor-pointer bg-sky-50/50 border border-sky-200 rounded-xl p-4 text-center hover:border-sky-400 transition shadow-xs">
-                    <div id="statUnable" class="text-2xl font-black text-sky-700">0</div>
-                    <div class="text-[11px] font-bold text-sky-600 uppercase tracking-wider mt-0.5">Unable to Verify</div>
-                </div>
+                <h2>The <em>non-authenticity</em> axiom.</h2>
+                <p>Why we refuse to build black-box authenticity certifications.</p>
             </div>
 
-            <!-- Two Column Layout: Extracted Fields (Left) + Verification Findings (Right) -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                
-                <!-- LEFT COLUMN: Extracted Fields & Human-In-The-Loop Inspector (5 Cols) -->
-                <div class="lg:col-span-5 space-y-4">
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-200">
-                            <div>
-                                <h3 class="font-bold text-slate-900 text-sm">Extracted Structured Fields</h3>
-                                <p class="text-xs text-slate-500">Inspect & edit values with source evidence trace.</p>
-                            </div>
-                            <span id="docCountBadge" class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-semibold"></span>
-                        </div>
-
-                        <!-- Document Selector Tabs -->
-                        <div id="docTabs" class="flex border-b border-slate-200 mt-3 space-x-2 overflow-x-auto text-xs font-semibold"></div>
-
-                        <!-- Fields Table -->
-                        <div class="mt-4 overflow-hidden rounded-lg border border-slate-200">
-                            <div class="max-h-[500px] overflow-y-auto">
-                                <table class="min-w-full divide-y divide-slate-200 text-xs">
-                                    <thead class="bg-slate-50 text-slate-600 sticky top-0">
-                                        <tr>
-                                            <th class="py-2 px-3 text-left font-bold">Field</th>
-                                            <th class="py-2 px-3 text-left font-bold">Value</th>
-                                            <th class="py-2 px-3 text-right font-bold">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="fieldsTableBody" class="divide-y divide-slate-100 font-mono">
-                                        <!-- Injected via JS -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Raw Text Inspector Accordion -->
-                        <div class="mt-4 pt-3 border-t border-slate-200">
-                            <button onclick="toggleRawText()" class="text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center justify-between w-full">
-                                <span>View Raw Extracted Text</span>
-                                <svg id="rawTextChevron" class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </button>
-                            <pre id="rawTextContent" class="hidden mt-2 p-3 bg-slate-900 text-slate-100 text-[11px] rounded-lg overflow-x-auto max-h-48"></pre>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- RIGHT COLUMN: Detailed Verification Findings (7 Cols) -->
-                <div class="lg:col-span-7 space-y-4">
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-200">
-                            <div>
-                                <h3 class="font-bold text-slate-900 text-sm">Deterministic Verification Findings</h3>
-                                <p class="text-xs text-slate-500">Every conclusion is linked directly to source evidence.</p>
-                            </div>
-                            <!-- Filter Pill Bar -->
-                            <div class="flex items-center space-x-1.5 text-xs">
-                                <span class="text-slate-400 font-medium text-[11px]">Filter:</span>
-                                <span id="activeFilterBadge" class="bg-slate-100 text-slate-800 font-bold px-2 py-0.5 rounded">All Checks</span>
-                            </div>
-                        </div>
-
-                        <!-- Findings Feed -->
-                        <div id="findingsContainer" class="mt-4 space-y-3">
-                            <!-- Injected via JS -->
-                        </div>
-                    </div>
-                </div>
-
+            <div style="background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 36px; line-height: 1.7; color: var(--muted); font-size: 15px;">
+                <p style="color: var(--text); font-size: 18px; margin-top: 0; font-family: 'Instrument Serif', serif; font-style: italic;">
+                    "PROOF should not pretend to certify that a document is authentic. It should show what it extracted, what it checked, what it found, and what it could not establish."
+                </p>
+                <p>
+                    Document verification has been plagued by "magic-word marketing" &mdash; companies claiming proprietary neural networks can tell you whether a document is "100% genuine" or "fake". In reality, authentic invoices frequently contain layout quirks, and forged documents can be typed cleanly.
+                </p>
+                <p>
+                    PROOF replaces faith with <strong>source evidence</strong>. Every calculation ($\text{Subtotal} + \text{Tax} = \text{Total}$), every PO cross-reference, and every date sequencing check is computed deterministically in transparent Python and JavaScript code, citing the exact document line and page number.
+                </p>
             </div>
-
-        </div>
-
+        </section>
     </main>
 
-    <!-- Modal for Human-In-The-Loop Field Editing -->
-    <div id="editFieldModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
-            <h3 class="text-base font-bold text-slate-900">Edit Extracted Value (Human Review)</h3>
-            <p class="text-xs text-slate-500 mt-1">Update this field to correct OCR inaccuracies or re-evaluate verification rules.</p>
-            
-            <div class="mt-4 space-y-3">
-                <div>
-                    <label for="editFieldKey" class="text-xs font-semibold text-slate-700">Field</label>
-                    <input type="text" id="editFieldKey" readonly class="mt-1 w-full text-xs font-mono bg-slate-100 border border-slate-200 rounded-lg p-2 text-slate-600">
-                </div>
-                <div>
-                    <label for="editFieldValue" class="text-xs font-semibold text-slate-700">Field Value</label>
-                    <input type="text" id="editFieldValue" class="mt-1 w-full text-xs font-mono bg-white border border-slate-300 rounded-lg p-2 text-slate-900 focus:ring-2 focus:ring-emerald-500">
-                </div>
-                <div id="editFieldEvidenceBox" class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-600">
-                    <span class="font-bold">Original Source Snippet:</span>
-                    <div id="editFieldEvidenceText" class="font-mono mt-0.5 text-slate-800"></div>
-                </div>
+    <!-- Site Footer -->
+    <footer class="site-footer">
+        <div>
+            <span>PROOF &bull; Document verification without magic-word marketing</span>
+        </div>
+        <div>
+            <a href="https://thehsiddarth.com" target="_blank" style="color: var(--accent);">thehsiddarth.com</a> &bull;
+            <a href="https://github.com/SlashingBeast49/PROOF" target="_blank">GitHub</a>
+        </div>
+    </footer>
+
+    <!-- Human Edit Modal -->
+    <div id="editModal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <h3 style="margin: 0; font-size: 17px;">Edit Extracted Field (Human Review)</h3>
+                <button onclick="closeEditModal()" style="color: var(--muted); font-size: 20px;">&times;</button>
+            </div>
+            <p style="font-size: 12.5px; color: var(--muted); margin-bottom: 16px;">
+                Correct extraction typos or OCR misreads. The deterministic engine will re-evaluate all rules instantly.
+            </p>
+
+            <div style="margin-bottom: 14px;">
+                <label for="editFieldLabel" style="font: 500 11px var(--mono); color: var(--muted); display: block; margin-bottom: 4px;">FIELD KEY</label>
+                <input type="text" id="editFieldLabel" readonly style="width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px; font: 400 12px var(--mono); color: var(--muted);">
             </div>
 
-            <div class="mt-6 flex justify-end space-x-3">
-                <button onclick="closeEditModal()" class="text-xs font-semibold px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">Cancel</button>
-                <button onclick="submitFieldOverride()" class="text-xs font-semibold px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm">Save & Re-verify</button>
+            <div style="margin-bottom: 18px;">
+                <label for="editFieldValue" style="font: 500 11px var(--mono); color: var(--accent); display: block; margin-bottom: 4px;">FIELD VALUE</label>
+                <input type="text" id="editFieldValue" style="width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px; font: 500 13px var(--mono); color: var(--text); outline: none;">
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button onclick="closeEditModal()" class="button button-secondary" style="font-size: 12px; padding: 8px 16px;">Cancel</button>
+                <button onclick="saveFieldOverride()" class="button button-primary" style="font-size: 12px; padding: 8px 16px;">Save & Re-verify</button>
             </div>
         </div>
     </div>
 
-    <!-- Application Script -->
+    <!-- Application Engine Script -->
     <script>
-        let currentCase = null;
-        let selectedDocIndex = 0;
-        let selectedFiles = [];
-        let currentFilter = 'all';
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('proof-theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', currentTheme);
 
-        // Initialize dropzone listeners
-        const dropzone = document.getElementById('dropzone');
+        themeToggle.addEventListener('click', () => {
+            const active = document.documentElement.getAttribute('data-theme');
+            const next = active === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('proof-theme', next);
+        });
+
+        // Built-in Benchmark Datasets (Ensures standalone operation even without server)
+        const BENCHMARKS = {
+            perfect_match: {
+                title: "Invoice & PO Harmonized (Valid Match)",
+                doc1: {
+                    name: "INV-2026-001.txt",
+                    text: `Document Type: Invoice\nInvoice Number: INV-2026-001\nPO Reference: PO-9942\nIssue Date: 2026-08-20\nDue Date: 2026-09-19\nVendor Name: Apex Software Solutions\nCustomer Name: Siddharth Tech Ltd\nCurrency: INR\nSubtotal: 1000.00\nTax: 180.00\nTotal: 1180.00`
+                },
+                doc2: {
+                    name: "PO-9942.txt",
+                    text: `Document Type: Purchase Order\nPO Number: PO-9942\nIssue Date: 2026-08-15\nDelivery Date: 2026-09-15\nVendor Name: Apex Software Solutions\nCustomer Name: Siddharth Tech Ltd\nCurrency: INR\nSubtotal: 1000.00\nTax: 180.00\nTotal: 1180.00`
+                }
+            },
+            amount_and_po_mismatch: {
+                title: "Total Discrepancy & PO Conflict (Fail)",
+                doc1: {
+                    name: "Supplier_Invoice_781.txt",
+                    text: `Document Type: Invoice\nInvoice Number: INV-781\nPO Reference: PO-8800\nIssue Date: 2026-08-10\nDue Date: 2026-09-10\nVendor Name: Global Hardware Inc\nCustomer Name: Siddharth Tech Ltd\nCurrency: USD\nSubtotal: 1200.00\nTax: 150.00\nTotal: 1350.00`
+                },
+                doc2: {
+                    name: "Approved_PO_8801.txt",
+                    text: `Document Type: Purchase Order\nPO Number: PO-8801\nIssue Date: 2026-08-14\nDelivery Date: 2026-09-20\nVendor Name: Global Hardware Inc\nCustomer Name: Siddharth Tech Ltd\nCurrency: USD\nSubtotal: 900.00\nTax: 100.00\nTotal: 1000.00`
+                }
+            },
+            incomplete_tax_error: {
+                title: "Missing Fields & Arithmetic Anomaly",
+                doc1: {
+                    name: "Incomplete_Invoice.txt",
+                    text: `Document Type: Invoice\nInvoice Number: INV-990-ERR\nIssue Date: 2026-08-25\nCurrency: USD\nSubtotal: 500.00\nTotal: 580.00`
+                },
+                doc2: {
+                    name: "",
+                    text: ""
+                }
+            },
+            currency_clash: {
+                title: "Currency Clash (INR vs USD)",
+                doc1: {
+                    name: "Invoice_US.txt",
+                    text: `Document Type: Invoice\nInvoice Number: INV-US-102\nPO Reference: PO-IN-55\nIssue Date: 2026-08-22\nDue Date: 2026-09-22\nVendor Name: Cloud Matrix Corp\nCurrency: USD\nSubtotal: 5000.00\nTax: 0.00\nTotal: 5000.00`
+                },
+                doc2: {
+                    name: "Purchase_Order_Domestic.txt",
+                    text: `Document Type: Purchase Order\nPO Number: PO-IN-55\nIssue Date: 2026-08-10\nVendor Name: Cloud Matrix Corp\nCurrency: INR\nSubtotal: 5000.00\nTax: 0.00\nTotal: 5000.00`
+                }
+            }
+        };
+
+        // Active State
+        let currentCaseData = null;
+        let selectedDocIdx = 0;
+        let activeFilter = 'all';
+        let stagedFiles = [];
+
+        function switchMode(mode) {
+            document.getElementById('pasteMode').style.display = mode === 'paste' ? 'block' : 'none';
+            document.getElementById('dropzoneMode').style.display = mode === 'files' ? 'block' : 'none';
+            document.getElementById('btnModePaste').style.borderColor = mode === 'paste' ? 'var(--accent)' : 'var(--line)';
+            document.getElementById('btnModeFiles').style.borderColor = mode === 'files' ? 'var(--accent)' : 'var(--line)';
+        }
+
+        function loadScenario(scenarioKey) {
+            const sc = BENCHMARKS[scenarioKey];
+            if (!sc) return;
+
+            document.getElementById('doc1Name').value = sc.doc1.name;
+            document.getElementById('doc1Text').value = sc.doc1.text;
+            document.getElementById('doc2Name').value = sc.doc2.name;
+            document.getElementById('doc2Text').value = sc.doc2.text;
+
+            switchMode('paste');
+            executeVerification(sc.title);
+
+            // Smooth scroll to studio
+            document.getElementById('verify').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // File dropzone handlers
+        const dropzone = document.getElementById('fileDropzone');
         const fileInput = document.getElementById('fileInput');
 
         dropzone.addEventListener('click', () => fileInput.click());
-        dropzone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropzone.classList.add('border-emerald-500', 'bg-emerald-50/20');
-        });
-        dropzone.addEventListener('dragleave', () => {
-            dropzone.classList.remove('border-emerald-500', 'bg-emerald-50/20');
-        });
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
         dropzone.addEventListener('drop', (e) => {
             e.preventDefault();
-            dropzone.classList.remove('border-emerald-500', 'bg-emerald-50/20');
-            if (e.dataTransfer.files.length > 0) {
-                selectedFiles = Array.from(e.dataTransfer.files);
-                renderSelectedFiles();
-            }
+            dropzone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
         });
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
-        function handleFileSelection(e) {
-            if (e.target.files.length > 0) {
-                selectedFiles = Array.from(e.target.files);
-                renderSelectedFiles();
-            }
-        }
-
-        function renderSelectedFiles() {
-            const container = document.getElementById('filesContainer');
-            const listWrapper = document.getElementById('selectedFilesList');
+        function handleFiles(files) {
+            stagedFiles = Array.from(files);
+            const container = document.getElementById('fileListContainer');
             container.innerHTML = '';
-            if (selectedFiles.length === 0) {
-                listWrapper.classList.add('hidden');
-                return;
-            }
-            listWrapper.classList.remove('hidden');
-            selectedFiles.forEach((file, idx) => {
-                const el = document.createElement('div');
-                el.className = 'flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-lg text-xs';
-                el.innerHTML = `
-                    <div class="flex items-center space-x-2 truncate">
-                        <span class="text-emerald-600 font-bold">📄</span>
-                        <span class="font-medium text-slate-800 truncate">${file.name}</span>
-                        <span class="text-slate-400 font-mono">(${Math.round(file.size / 1024)} KB)</span>
-                    </div>
-                    <button onclick="removeFile(${idx})" class="text-slate-400 hover:text-rose-600 p-1">&times;</button>
-                `;
-                container.appendChild(el);
+            stagedFiles.forEach((f, idx) => {
+                const b = document.createElement('div');
+                b.className = 'selected-file-badge';
+                b.innerHTML = `📄 ${f.name} <span style="color: var(--muted)">(${Math.round(f.size/1024)} KB)</span> <button onclick="removeStagedFile(${idx})" style="color: var(--red); font-weight: bold;">&times;</button>`;
+                container.appendChild(b);
             });
         }
 
-        function removeFile(idx) {
-            selectedFiles.splice(idx, 1);
-            renderSelectedFiles();
+        function removeStagedFile(idx) {
+            stagedFiles.splice(idx, 1);
+            handleFiles(stagedFiles);
         }
 
-        function switchInputTab(tab) {
-            const tabFilesBtn = document.getElementById('tabFilesBtn');
-            const tabTextBtn = document.getElementById('tabTextBtn');
-            const fileUploadContainer = document.getElementById('fileUploadContainer');
-            const textUploadContainer = document.getElementById('textUploadContainer');
+        // Core Verification Orchestrator (Backend API with automatic Client-side Fallback)
+        async function executeVerification(customTitle) {
+            const doc1Text = document.getElementById('doc1Text').value.trim();
+            const doc1Name = document.getElementById('doc1Name').value.trim() || 'Document_1.txt';
+            const doc2Text = document.getElementById('doc2Text').value.trim();
+            const doc2Name = document.getElementById('doc2Name').value.trim() || 'Document_2.txt';
 
-            if (tab === 'files') {
-                tabFilesBtn.className = 'pb-3 border-b-2 border-emerald-600 text-emerald-600 flex items-center space-x-2';
-                tabTextBtn.className = 'pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2';
-                fileUploadContainer.classList.remove('hidden');
-                textUploadContainer.classList.add('hidden');
-            } else {
-                tabTextBtn.className = 'pb-3 border-b-2 border-emerald-600 text-emerald-600 flex items-center space-x-2';
-                tabFilesBtn.className = 'pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2';
-                textUploadContainer.classList.remove('hidden');
-                fileUploadContainer.classList.add('hidden');
-            }
-        }
+            const documents = [{ filename: doc1Name, content: doc1Text }];
+            if (doc2Text) documents.push({ filename: doc2Name, content: doc2Text });
 
-        function toggleScenarioDropdown() {
-            const dd = document.getElementById('scenarioDropdown');
-            dd.classList.toggle('hidden');
-        }
+            const payload = {
+                title: customTitle || (documents.length > 1 ? `Verification of ${documents.length} Documents` : `Verification of ${doc1Name}`),
+                documents
+            };
 
-        // Close dropdown when clicking outside
-        window.addEventListener('click', (e) => {
-            if (!document.getElementById('scenarioBtn').contains(e.target)) {
-                document.getElementById('scenarioDropdown').classList.add('hidden');
-            }
-        });
-
-        async function loadScenario(scenarioId) {
-            document.getElementById('scenarioDropdown').classList.add('hidden');
-            try {
-                const res = await fetch(`/api/scenarios/${scenarioId}`);
-                if (!res.ok) throw new Error('Failed to load scenario');
-                const data = await res.json();
-                renderCaseResults(data);
-            } catch (err) {
-                alert('Error loading scenario: ' + err.message);
-            }
-        }
-
-        async function verifyPastedText() {
-            const doc1Content = document.getElementById('doc1Content').value.trim();
-            const doc1Filename = document.getElementById('doc1Filename').value.trim() || 'Invoice.txt';
-            const doc2Content = document.getElementById('doc2Content').value.trim();
-            const doc2Filename = document.getElementById('doc2Filename').value.trim() || 'Purchase_Order.txt';
-
-            if (!doc1Content) {
-                alert('Please enter content for Document 1');
-                return;
-            }
-
-            const documents = [{ filename: doc1Filename, content: doc1Content }];
-            if (doc2Content) {
-                documents.push({ filename: doc2Filename, content: doc2Content });
-            }
-
+            // 1. Try FastAPI REST endpoint
             try {
                 const res = await fetch('/api/cases/verify-text', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title: 'Pasted Document Verification', documents })
+                    body: JSON.stringify(payload)
                 });
-                if (!res.ok) throw new Error('Verification failed');
-                const data = await res.json();
-                renderCaseResults(data);
+                if (res.ok) {
+                    const data = await res.json();
+                    renderVerificationCase(data);
+                    return;
+                }
             } catch (err) {
-                alert('Error verifying text: ' + err.message);
+                // Endpoint offline or running standalone under file:///
+                console.log('Server API unreachable. Falling back to client-side verification engine.');
             }
+
+            // 2. Client-side deterministic verification fallback
+            const clientResult = runClientVerification(payload);
+            renderVerificationCase(clientResult);
         }
 
-        async function uploadAndVerifyFiles() {
-            if (selectedFiles.length === 0) return;
-            const formData = new FormData();
-            selectedFiles.forEach(f => formData.append('files', f));
+        // Deterministic Client-side Rule Engine (Zero server dependency)
+        function runClientVerification(payload) {
+            const caseId = 'case_' + Math.random().toString(36).substring(2, 10);
+            const parsedDocs = payload.documents.map((d, dIdx) => parseDocText(d.content, d.filename, `doc_${dIdx}`));
 
-            try {
-                const res = await fetch('/api/cases/upload', {
-                    method: 'POST',
-                    body: formData
+            const findings = [];
+            parsedDocs.forEach(doc => {
+                findings.push(...runIntraRulesClient(doc));
+            });
+
+            if (parsedDocs.length >= 2) {
+                findings.push(...runCrossRulesClient(parsedDocs[0], parsedDocs[1]));
+            }
+
+            const stats = { 'Match': 0, 'Mismatch': 0, 'Missing': 0, 'Unable to verify': 0, 'Needs review': 0, 'Not applicable': 0 };
+            findings.forEach(f => { stats[f.status] = (stats[f.status] || 0) + 1; });
+
+            let verdict = 'VERIFIED_CONSISTENT';
+            if (stats['Mismatch'] > 0) verdict = 'INCONSISTENCIES_FOUND';
+            else if (stats['Missing'] > 0 || stats['Needs review'] > 0) verdict = 'REVIEW_REQUIRED';
+            else if (stats['Unable to verify'] > 0 && stats['Match'] === 0) verdict = 'INSUFFICIENT_EVIDENCE';
+
+            return {
+                case_id: caseId,
+                title: payload.title,
+                created_at: new Date().toISOString(),
+                verdict,
+                summary_stats: stats,
+                documents: parsedDocs,
+                findings
+            };
+        }
+
+        function parseDocText(text, filename, docId) {
+            const lines = text.split('\n');
+            const fields = {};
+            const patterns = {
+                'document_type': /Document\s*Type\s*[:\-=]\s*(.+)/i,
+                'invoice_number': /(?:Invoice|Inv)\s*(?:Number|No\.?|#|ID)?\s*[:\-=]\s*(.+)/i,
+                'po_reference': /(?:PO|Purchase\s*Order)\s*(?:Reference|Ref|#|Number)?\s*[:\-=]\s*(.+)/i,
+                'po_number': /(?:PO|Purchase\s*Order)\s*(?:Number|No\.?|#|ID)\s*[:\-=]\s*(.+)/i,
+                'issue_date': /(?:Issue|Invoice|Order|PO)?\s*Date\s*[:\-=]\s*(.+)/i,
+                'due_date': /(?:Due|Delivery|Payment)\s*Date\s*[:\-=]\s*(.+)/i,
+                'vendor_name': /(?:Vendor|Supplier|From|Seller)\s*(?:Name)?\s*[:\-=]\s*(.+)/i,
+                'customer_name': /(?:Customer|Client|Buyer|Bill\s*To)\s*(?:Name)?\s*[:\-=]\s*(.+)/i,
+                'currency': /(?:Currency|Curr)\s*[:\-=]\s*(.+)/i,
+                'subtotal': /(?:Subtotal|Sub\s*Total|Net\s*Amount)\s*[:\-=]\s*(.+)/i,
+                'tax': /(?:Tax|VAT|GST)\s*[:\-=]\s*(.+)/i,
+                'total': /(?:Total|Grand\s*Total|Amount\s*Due)\s*[:\-=]\s*(.+)/i
+            };
+
+            for (const [key, regex] of Object.entries(patterns)) {
+                for (let i = 0; i < lines.length; i++) {
+                    const m = lines[i].match(regex);
+                    if (m) {
+                        const raw = m[1].trim();
+                        fields[key] = {
+                            key,
+                            label: key.replace('_', ' ').toUpperCase(),
+                            original_value: raw,
+                            normalized_value: raw.replace(/[^\d.-]/g, '') || raw,
+                            evidence: { document_name: filename, line_number: i + 1, snippet: lines[i].trim() }
+                        };
+                        break;
+                    }
+                }
+            }
+
+            let docType = 'Unknown';
+            if (text.toLowerCase().includes('purchase order')) docType = 'Purchase Order';
+            else if (text.toLowerCase().includes('invoice')) docType = 'Invoice';
+
+            return { id: docId, filename, doc_type: docType, extracted_fields: fields, raw_text: text, page_count: 1 };
+        }
+
+        function runIntraRulesClient(doc) {
+            const findings = [];
+            const f = doc.extracted_fields;
+
+            // 1. Required fields
+            const req = doc.doc_type === 'Purchase Order' ? ['po_number', 'issue_date', 'total'] : ['invoice_number', 'issue_date', 'currency', 'total'];
+            const missing = req.filter(k => !f[k]);
+            if (missing.length === 0) {
+                findings.push({
+                    id: 'req_' + doc.id,
+                    rule_id: 'RULE-REQ-001',
+                    title: `Required Fields (${doc.doc_type})`,
+                    category: 'Document Completeness',
+                    status: 'Match',
+                    explanation: `All expected mandatory fields for ${doc.doc_type} were verified in '${doc.filename}'.`,
+                    evidence: Object.values(f).map(x => x.evidence).filter(Boolean)
                 });
-                if (!res.ok) throw new Error('Upload verification failed');
-                const data = await res.json();
-                renderCaseResults(data);
-            } catch (err) {
-                alert('Error uploading files: ' + err.message);
+            } else {
+                findings.push({
+                    id: 'req_' + doc.id,
+                    rule_id: 'RULE-REQ-001',
+                    title: `Required Fields (${doc.doc_type})`,
+                    category: 'Document Completeness',
+                    status: 'Missing',
+                    explanation: `Mandatory field(s) missing in '${doc.filename}': ${missing.join(', ')}.`,
+                    evidence: []
+                });
             }
+
+            // 2. Math check
+            if (f.subtotal && f.tax && f.total) {
+                const sub = parseFloat(f.subtotal.normalized_value) || 0;
+                const tax = parseFloat(f.tax.normalized_value) || 0;
+                const tot = parseFloat(f.total.normalized_value) || 0;
+                const calc = sub + tax;
+                if (Math.abs(calc - tot) < 0.01) {
+                    findings.push({
+                        id: 'math_' + doc.id,
+                        rule_id: 'RULE-MATH-001',
+                        title: 'Tax & Total Calculation',
+                        category: 'Mathematical Integrity',
+                        status: 'Match',
+                        explanation: `Arithmetic verified: Subtotal (${sub.toFixed(2)}) + Tax (${tax.toFixed(2)}) = Total (${tot.toFixed(2)}).`,
+                        evidence: [f.subtotal.evidence, f.tax.evidence, f.total.evidence].filter(Boolean)
+                    });
+                } else {
+                    findings.push({
+                        id: 'math_' + doc.id,
+                        rule_id: 'RULE-MATH-001',
+                        title: 'Tax & Total Calculation',
+                        category: 'Mathematical Integrity',
+                        status: 'Mismatch',
+                        explanation: `Arithmetic conflict: Subtotal (${sub.toFixed(2)}) + Tax (${tax.toFixed(2)}) yields ${calc.toFixed(2)}, differing from stated Total (${tot.toFixed(2)}).`,
+                        evidence: [f.subtotal.evidence, f.tax.evidence, f.total.evidence].filter(Boolean)
+                    });
+                }
+            }
+
+            return findings;
         }
 
-        function resetToUpload() {
-            document.getElementById('resultsSection').classList.add('hidden');
-            document.getElementById('uploadSection').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        function runCrossRulesClient(d1, d2) {
+            const findings = [];
+            const f1 = d1.extracted_fields;
+            const f2 = d2.extracted_fields;
+
+            // PO Match
+            const po1 = f1.po_reference || f1.po_number;
+            const po2 = f2.po_number || f2.po_reference;
+            if (po1 && po2) {
+                const m = po1.normalized_value.toUpperCase() === po2.normalized_value.toUpperCase();
+                findings.push({
+                    id: 'cross_po',
+                    rule_id: 'RULE-CROSS-001',
+                    title: 'PO Reference Identifier Match',
+                    category: 'Cross-Document Consistency',
+                    status: m ? 'Match' : 'Mismatch',
+                    explanation: m ? `PO reference '${po1.original_value}' matches Purchase Order '${po2.original_value}'.` : `PO mismatch: '${d1.filename}' references '${po1.original_value}', but '${d2.filename}' is '${po2.original_value}'.`,
+                    evidence: [po1.evidence, po2.evidence].filter(Boolean)
+                });
+            }
+
+            // Total Match
+            if (f1.total && f2.total) {
+                const t1 = parseFloat(f1.total.normalized_value) || 0;
+                const t2 = parseFloat(f2.total.normalized_value) || 0;
+                const m = Math.abs(t1 - t2) < 0.01;
+                findings.push({
+                    id: 'cross_tot',
+                    rule_id: 'RULE-CROSS-002',
+                    title: 'Cross-Document Total Comparison',
+                    category: 'Cross-Document Consistency',
+                    status: m ? 'Match' : 'Mismatch',
+                    explanation: m ? `Monetary totals agree: ${t1.toFixed(2)} matches ${t2.toFixed(2)} across documents.` : `Discrepancy detected: '${d1.filename}' states ${t1.toFixed(2)}, while '${d2.filename}' states ${t2.toFixed(2)} (delta: ${(t1 - t2).toFixed(2)}).`,
+                    evidence: [f1.total.evidence, f2.total.evidence].filter(Boolean)
+                });
+            }
+
+            // Currency Match
+            if (f1.currency && f2.currency) {
+                const c1 = f1.currency.original_value.toUpperCase();
+                const c2 = f2.currency.original_value.toUpperCase();
+                const m = c1 === c2;
+                findings.push({
+                    id: 'cross_curr',
+                    rule_id: 'RULE-CROSS-003',
+                    title: 'Currency Harmonization',
+                    category: 'Cross-Document Consistency',
+                    status: m ? 'Match' : 'Mismatch',
+                    explanation: m ? `Both documents agree on currency code: ${c1}.` : `Currency conflict: '${d1.filename}' is in ${c1}, but '${d2.filename}' is in ${c2}.`,
+                    evidence: [f1.currency.evidence, f2.currency.evidence].filter(Boolean)
+                });
+            }
+
+            return findings;
         }
 
-        function renderCaseResults(caseData) {
-            currentCase = caseData;
-            selectedDocIndex = 0;
-            currentFilter = 'all';
+        // Render Findings & Results View
+        function renderVerificationCase(data) {
+            currentCaseData = data;
+            selectedDocIdx = 0;
+            activeFilter = 'all';
 
-            document.getElementById('uploadSection').classList.add('hidden');
-            document.getElementById('resultsSection').classList.remove('hidden');
+            document.getElementById('resultsWrapper').style.display = 'block';
 
             // Verdict Styling
-            const banner = document.getElementById('verdictBanner');
-            const badge = document.getElementById('verdictBadge');
-            const title = document.getElementById('caseTitleLabel');
-            const desc = document.getElementById('verdictDescription');
-            document.getElementById('caseIdLabel').innerText = `ID: ${caseData.case_id}`;
-            title.innerText = caseData.title;
+            const vBadge = document.getElementById('verdictBadge');
+            const vDesc = document.getElementById('verdictExplanation');
+            document.getElementById('caseIdTag').innerText = `CASE ID: ${data.case_id}`;
+            document.getElementById('caseTitleDisplay').innerText = data.title;
 
-            if (caseData.verdict === 'VERIFIED_CONSISTENT') {
-                banner.className = 'p-6 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 bg-emerald-50 border-emerald-300';
-                badge.className = 'text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-600 text-white';
-                badge.innerText = 'VERIFIED CONSISTENT';
-                desc.innerText = 'All deterministic intra-document calculations and cross-document references are fully aligned.';
-            } else if (caseData.verdict === 'INCONSISTENCIES_FOUND') {
-                banner.className = 'p-6 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 bg-rose-50 border-rose-300';
-                badge.className = 'text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-rose-600 text-white';
-                badge.innerText = 'INCONSISTENCIES FOUND';
-                desc.innerText = 'Specific conflicts were discovered in cross-document comparisons or arithmetic calculations.';
-            } else if (caseData.verdict === 'REVIEW_REQUIRED') {
-                banner.className = 'p-6 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 bg-amber-50 border-amber-300';
-                badge.className = 'text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-amber-600 text-white';
-                badge.innerText = 'REVIEW REQUIRED';
-                desc.innerText = 'Mandatory fields or date sequences require human confirmation or revised documents.';
+            if (data.verdict === 'VERIFIED_CONSISTENT') {
+                vBadge.className = 'verdict-tag pass';
+                vBadge.innerText = 'VERIFIED CONSISTENT';
+                vDesc.innerText = 'All deterministic intra-document and cross-document verification checks passed with zero conflicts.';
+            } else if (data.verdict === 'INCONSISTENCIES_FOUND') {
+                vBadge.className = 'verdict-tag fail';
+                vBadge.innerText = 'INCONSISTENCIES FOUND';
+                vDesc.innerText = 'One or more discrepancies were detected in amounts, PO identifiers, or currencies.';
             } else {
-                banner.className = 'p-6 rounded-2xl border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 bg-sky-50 border-sky-300';
-                badge.className = 'text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-sky-600 text-white';
-                badge.innerText = caseData.verdict;
-                desc.innerText = 'Additional documentation is required to establish complete cross-verification.';
+                vBadge.className = 'verdict-tag warn';
+                vBadge.innerText = data.verdict.replace('_', ' ');
+                vDesc.innerText = 'Action required: Some mandatory fields or documents are missing or require human review.';
             }
 
-            // Summary Stats
-            const stats = caseData.summary_stats || {};
-            document.getElementById('statAll').innerText = caseData.findings.length;
+            // Summary stats
+            const stats = data.summary_stats || {};
+            document.getElementById('statAll').innerText = data.findings.length;
             document.getElementById('statMatch').innerText = stats['Match'] || 0;
             document.getElementById('statMismatch').innerText = stats['Mismatch'] || 0;
             document.getElementById('statMissing').innerText = stats['Missing'] || 0;
-            document.getElementById('statNeedsReview').innerText = stats['Needs review'] || 0;
+            document.getElementById('statReview').innerText = stats['Needs review'] || 0;
             document.getElementById('statUnable').innerText = stats['Unable to verify'] || 0;
 
             renderDocTabs();
-            renderFindings();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            renderFindingsList();
+
+            document.getElementById('resultsWrapper').scrollIntoView({ behavior: 'smooth' });
         }
 
         function renderDocTabs() {
-            const tabsContainer = document.getElementById('docTabs');
-            tabsContainer.innerHTML = '';
-            document.getElementById('docCountBadge').innerText = `${currentCase.documents.length} Document(s)`;
+            const container = document.getElementById('docTabButtons');
+            container.innerHTML = '';
+            document.getElementById('docCountPill').innerText = `${currentCaseData.documents.length} DOCUMENT(S)`;
 
-            currentCase.documents.forEach((doc, idx) => {
+            currentCaseData.documents.forEach((d, idx) => {
                 const btn = document.createElement('button');
-                const isSelected = idx === selectedDocIndex;
-                btn.className = `pb-2 px-3 shrink-0 whitespace-nowrap transition border-b-2 ${
-                    isSelected ? 'border-emerald-600 text-emerald-700 font-bold' : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`;
-                btn.innerText = `${doc.filename} (${doc.doc_type})`;
-                btn.onclick = () => {
-                    selectedDocIndex = idx;
-                    renderDocTabs();
-                };
-                tabsContainer.appendChild(btn);
+                btn.className = `button button-secondary`;
+                btn.style.padding = '5px 12px';
+                btn.style.fontSize = '11px';
+                btn.style.fontFamily = 'var(--mono)';
+                btn.style.borderColor = idx === selectedDocIdx ? 'var(--accent)' : 'var(--line)';
+                btn.innerText = `${d.filename} (${d.doc_type})`;
+                btn.onclick = () => { selectedDocIdx = idx; renderDocTabs(); };
+                container.appendChild(btn);
             });
 
             renderFieldsTable();
         }
 
         function renderFieldsTable() {
-            const currentDoc = currentCase.documents[selectedDocIndex];
-            const tbody = document.getElementById('fieldsTableBody');
+            const doc = currentCaseData.documents[selectedDocIdx];
+            const tbody = document.getElementById('fieldsTableRows');
             tbody.innerHTML = '';
 
-            if (!currentDoc || !currentDoc.extracted_fields || Object.keys(currentDoc.extracted_fields).length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="py-4 text-center text-slate-400">No fields extracted</td></tr>';
+            if (!doc || !doc.extracted_fields || Object.keys(doc.extracted_fields).length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--muted); padding: 20px;">No structured fields extracted.</td></tr>`;
                 return;
             }
 
-            Object.entries(currentDoc.extracted_fields).forEach(([key, field]) => {
+            Object.entries(doc.extracted_fields).forEach(([k, f]) => {
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-50 transition';
-                
-                const evSnippet = field.evidence ? field.evidence.snippet : '—';
-                
+                const snip = f.evidence ? f.evidence.snippet : '—';
                 tr.innerHTML = `
-                    <td class="py-2.5 px-3">
-                        <div class="font-bold text-slate-800">${field.label}</div>
-                        <div class="text-[10px] text-slate-400 font-normal truncate max-w-[140px]" title="${evSnippet}">
-                            ${evSnippet}
-                        </div>
+                    <td>
+                        <div style="font-weight: 600; color: var(--text);">${f.label}</div>
+                        <div style="color: var(--muted); font-size: 10px; margin-top: 2px;">${snip}</div>
                     </td>
-                    <td class="py-2.5 px-3">
-                        <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-medium">${field.normalized_value}</span>
-                        ${field.is_reviewed ? '<span class="ml-1 text-[9px] bg-blue-100 text-blue-800 px-1 py-0.5 rounded font-sans">Reviewed</span>' : ''}
+                    <td>
+                        <span style="color: var(--accent);">${f.normalized_value}</span>
                     </td>
-                    <td class="py-2.5 px-3 text-right">
-                        <button onclick="openEditModal('${currentDoc.id}', '${key}', '${field.normalized_value}', '${encodeURIComponent(evSnippet)}')" class="text-emerald-600 hover:text-emerald-800 font-sans font-semibold text-[11px] underline">
-                            Edit
-                        </button>
+                    <td style="text-align: right;">
+                        <button onclick="openEditModal('${doc.id}', '${k}', '${f.normalized_value}')" style="color: var(--accent); font-size: 11px; text-decoration: underline;">Edit</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
-
-            // Update raw text preview
-            document.getElementById('rawTextContent').innerText = currentDoc.raw_text || '(No text content)';
-        }
-
-        function toggleRawText() {
-            const el = document.getElementById('rawTextContent');
-            const chev = document.getElementById('rawTextChevron');
-            el.classList.toggle('hidden');
-            chev.classList.toggle('rotate-180');
         }
 
         function filterFindings(status) {
-            currentFilter = status;
-            document.getElementById('activeFilterBadge').innerText = status === 'all' ? 'All Checks' : status;
-            renderFindings();
+            activeFilter = status;
+            document.getElementById('activeFilterLabel').innerText = status.toUpperCase();
+            renderFindingsList();
         }
 
-        function renderFindings() {
+        function renderFindingsList() {
             const container = document.getElementById('findingsContainer');
             container.innerHTML = '';
 
-            const findings = currentCase.findings || [];
-            const filtered = currentFilter === 'all' 
-                ? findings 
-                : findings.filter(f => f.status.toLowerCase() === currentFilter.toLowerCase());
+            const list = activeFilter === 'all' 
+                ? currentCaseData.findings 
+                : currentCaseData.findings.filter(f => f.status.toLowerCase() === activeFilter.toLowerCase());
 
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">No findings match the selected filter "${currentFilter}".</div>`;
+            if (list.length === 0) {
+                container.innerHTML = `<div style="text-align: center; color: var(--muted); padding: 30px; font-size: 12px;">No findings match filter "${activeFilter}".</div>`;
                 return;
             }
 
-            const statusColors = {
-                'Match': { badge: 'bg-emerald-100 text-emerald-800 border-emerald-200', border: 'border-l-emerald-500' },
-                'Mismatch': { badge: 'bg-rose-100 text-rose-800 border-rose-200', border: 'border-l-rose-500' },
-                'Missing': { badge: 'bg-amber-100 text-amber-800 border-amber-200', border: 'border-l-amber-500' },
-                'Unable to verify': { badge: 'bg-sky-100 text-sky-800 border-sky-200', border: 'border-l-sky-400' },
-                'Needs review': { badge: 'bg-orange-100 text-orange-800 border-orange-200', border: 'border-l-orange-400' },
-                'Not applicable': { badge: 'bg-slate-100 text-slate-700 border-slate-200', border: 'border-l-slate-300' },
+            const statusClassMap = {
+                'Match': 'match',
+                'Mismatch': 'mismatch',
+                'Missing': 'missing',
+                'Needs review': 'needs-review',
+                'Unable to verify': 'unable-to-verify'
             };
 
-            filtered.forEach(f => {
-                const styling = statusColors[f.status] || { badge: 'bg-slate-100 text-slate-700 border-slate-200', border: 'border-l-slate-400' };
-                const el = document.createElement('div');
-                el.className = `p-4 rounded-xl border border-slate-200 bg-white border-l-4 ${styling.border} shadow-2xs`;
+            const badgeClassMap = {
+                'Match': 'status-match',
+                'Mismatch': 'status-mismatch',
+                'Missing': 'status-missing',
+                'Needs review': 'status-needs-review',
+                'Unable to verify': 'status-unable'
+            };
 
-                let evidenceHtml = '';
+            list.forEach(f => {
+                const card = document.createElement('div');
+                card.className = `finding-card ${statusClassMap[f.status] || 'match'}`;
+
+                let evHtml = '';
                 if (f.evidence && f.evidence.length > 0) {
-                    const items = f.evidence.map(ev => `
-                        <div class="mt-1 flex items-start space-x-2 text-[11px] text-slate-600">
-                            <span class="font-bold shrink-0 text-slate-700 font-sans">📄 ${ev.document_name} (p.${ev.page_number || 1}${ev.line_number ? ', l.' + ev.line_number : ''}):</span>
-                            <code class="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded font-mono truncate max-w-sm sm:max-w-md">${ev.snippet}</code>
+                    const quotes = f.evidence.map(ev => `
+                        <div class="evidence-quote">
+                            <span>📄 ${ev.document_name}${ev.line_number ? ` (line ${ev.line_number})` : ''}:</span> "${ev.snippet}"
                         </div>
                     `).join('');
-                    evidenceHtml = `<div class="mt-2.5 pt-2 border-t border-slate-100">${items}</div>`;
+                    evHtml = `<div style="margin-top: 8px;">${quotes}</div>`;
                 }
 
-                let actionHtml = '';
-                if (f.human_action_needed) {
-                    actionHtml = `
-                        <div class="mt-2 text-xs bg-amber-50 text-amber-900 border border-amber-200 rounded-md p-2 flex items-start space-x-1.5">
-                            <span class="font-bold shrink-0">Action:</span>
-                            <span>${f.human_action_needed}</span>
-                        </div>
-                    `;
-                }
-
-                el.innerHTML = `
-                    <div class="flex items-start justify-between gap-2">
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${f.category} &bull; ${f.rule_id}</span>
-                            <h4 class="text-sm font-bold text-slate-900 mt-0.5">${f.title}</h4>
-                        </div>
-                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full border shrink-0 ${styling.badge}">
-                            ${f.status}
-                        </span>
+                card.innerHTML = `
+                    <div class="finding-meta">
+                        <span style="font: 500 10px var(--mono); color: var(--muted);">${f.category} &bull; ${f.rule_id}</span>
+                        <span class="finding-status-badge ${badgeClassMap[f.status] || 'status-match'}">${f.status}</span>
                     </div>
-                    <p class="text-xs text-slate-700 mt-2 leading-relaxed">${f.explanation}</p>
-                    ${actionHtml}
-                    ${evidenceHtml}
+                    <div style="font-weight: 600; font-size: 14.5px; margin-bottom: 4px;">${f.title}</div>
+                    <div class="finding-explanation">${f.explanation}</div>
+                    ${evHtml}
                 `;
-                container.appendChild(el);
+                container.appendChild(card);
             });
         }
 
-        // Human Review Edit Modal
-        let activeEditDocId = null;
-        let activeEditKey = null;
+        // Edit Field Modal
+        let activeEditDoc = null;
+        let activeEditFieldKey = null;
 
-        function openEditModal(docId, key, currentValue, encodedSnippet) {
-            activeEditDocId = docId;
-            activeEditKey = key;
-            document.getElementById('editFieldKey').value = key;
-            document.getElementById('editFieldValue').value = currentValue;
-            document.getElementById('editFieldEvidenceText').innerText = decodeURIComponent(encodedSnippet);
-            document.getElementById('editFieldModal').classList.remove('hidden');
+        function openEditModal(docId, key, value) {
+            activeEditDoc = docId;
+            activeEditFieldKey = key;
+            document.getElementById('editFieldLabel').value = key;
+            document.getElementById('editFieldValue').value = value;
+            document.getElementById('editModal').style.display = 'grid';
         }
 
         function closeEditModal() {
-            document.getElementById('editFieldModal').classList.add('hidden');
+            document.getElementById('editModal').style.display = 'none';
         }
 
-        async function submitFieldOverride() {
-            const newValue = document.getElementById('editFieldValue').value.trim();
-            if (!newValue) return;
+        function saveFieldOverride() {
+            const newVal = document.getElementById('editFieldValue').value.trim();
+            if (!newVal || !currentCaseData) return;
 
-            try {
-                const res = await fetch('/api/cases/override-and-reverify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        case_id: currentCase.case_id,
-                        document_id: activeEditDocId,
-                        field_key: activeEditKey,
-                        new_value: newValue
-                    })
-                });
-                if (!res.ok) throw new Error('Failed to update field');
-                const updatedData = await res.json();
-                closeEditModal();
-                renderCaseResults(updatedData);
-            } catch (err) {
-                alert('Error updating field: ' + err.message);
+            const doc = currentCaseData.documents.find(d => d.id === activeEditDoc);
+            if (doc && doc.extracted_fields[activeEditFieldKey]) {
+                doc.extracted_fields[activeEditFieldKey].normalized_value = newVal;
+                doc.extracted_fields[activeEditFieldKey].original_value = newVal;
             }
+
+            // Re-verify instantly
+            const updated = runClientVerification({
+                title: currentCaseData.title + " (Human Reviewed)",
+                documents: currentCaseData.documents.map(d => ({ filename: d.filename, content: d.raw_text }))
+            });
+
+            closeEditModal();
+            renderVerificationCase(updated);
         }
 
         function downloadJsonReport() {
-            if (!currentCase) return;
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentCase, null, 2));
-            const dlAnchor = document.createElement('a');
-            dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", `${currentCase.case_id}_audit_report.json`);
-            dlAnchor.click();
+            if (!currentCaseData) return;
+            const str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentCaseData, null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", str);
+            dl.setAttribute("download", `${currentCaseData.case_id}_audit_report.json`);
+            dl.click();
         }
 
-        function openPrintableHtmlReport() {
-            if (!currentCase) return;
-            window.open(`/api/cases/${currentCase.case_id}/report.html`, '_blank');
+        function openPrintableReport() {
+            if (!currentCaseData) return;
+            window.open(`/api/cases/${currentCaseData.case_id}/report.html`, '_blank');
+        }
+
+        // Interactive Terminal Handler
+        function handleTerminalSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('terminalInput');
+            const cmd = input.value.trim();
+            if (!cmd) return;
+            input.value = '';
+
+            const out = document.getElementById('terminalOutput');
+            const cmdLine = document.createElement('div');
+            cmdLine.className = 'terminal-line cmd';
+            cmdLine.innerText = '> ' + cmd;
+            out.appendChild(cmdLine);
+
+            const parts = cmd.toLowerCase().split(' ');
+            const primary = parts[0];
+
+            if (primary === 'help') {
+                logTerm('Available commands:');
+                logTerm('  demo            - Run all 4 benchmark cases sequentially');
+                logTerm('  benchmark [1-4] - Load and verify a specific benchmark case');
+                logTerm('  verify          - Execute verification on active text documents');
+                logTerm('  philosophy      - Read the core verification axiom');
+                logTerm('  status          - Query engine and platform runtime status');
+                logTerm('  clear           - Clear terminal buffer');
+            } else if (primary === 'clear') {
+                out.innerHTML = '';
+            } else if (primary === 'philosophy') {
+                logTerm('"PROOF does not pretend to certify that a document is authentic. It shows what was extracted, what it checked, what it found, and what it could not establish."', 'success');
+            } else if (primary === 'status') {
+                logTerm('PROOF v0.1.0 engine online. Deterministic mathematical & cross-document verification active.', 'success');
+            } else if (primary === 'demo') {
+                logTerm('Running benchmark demonstration suite...', 'warn');
+                loadScenario('perfect_match');
+                logTerm('Loaded Scenario 1: Harmonized Invoice & PO (Verdict: PASS)', 'success');
+            } else if (primary === 'benchmark') {
+                const num = parts[1];
+                const map = { '1': 'perfect_match', '2': 'amount_and_po_mismatch', '3': 'incomplete_tax_error', '4': 'currency_clash' };
+                if (map[num]) {
+                    loadScenario(map[num]);
+                    logTerm(`Loaded benchmark scenario ${num}.`, 'success');
+                } else {
+                    logTerm('Usage: benchmark 1, benchmark 2, benchmark 3, or benchmark 4', 'error');
+                }
+            } else if (primary === 'verify') {
+                executeVerification();
+                logTerm('Verification executed. Check Studio section.', 'success');
+            } else {
+                logTerm(`Command not recognized: "${cmd}". Type "help" for valid commands.`, 'error');
+            }
+
+            out.scrollTop = out.scrollHeight;
+        }
+
+        function logTerm(msg, type = '') {
+            const out = document.getElementById('terminalOutput');
+            const el = document.createElement('div');
+            el.className = `terminal-line ${type}`;
+            el.innerText = msg;
+            out.appendChild(el);
+            out.scrollTop = out.scrollHeight;
         }
     </script>
 </body>

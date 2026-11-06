@@ -66,3 +66,4 @@ def test_legacy_extract_fields_compatibility():
     res = extract_fields(content)
     assert res.fields["invoice_number"] == "INV-001"
     assert res.fields["total"] == "100.00"
+

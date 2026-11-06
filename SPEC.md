@@ -259,3 +259,4 @@ $$\text{Verdict} = \begin{cases}
 2. **Deterministic Reproducibility:** Given the identical set of document inputs, PROOF must produce the identical verification findings every time.
 3. **No Unauthenticated External Side-Effects:** The verification engine runs purely in local or private tenant memory without transmitting extracted content to third-party tracking APIs.
 4. **Audit Trail Immutability:** When a human override occurs, the original extracted value and source snippet are preserved alongside the overridden value, with `is_reviewed=True`.
+
