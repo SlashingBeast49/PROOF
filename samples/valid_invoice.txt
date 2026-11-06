@@ -1,0 +1,8 @@
+Document Type: Invoice
+Invoice Number: INV-2026-001
+Issue Date: 2026-08-20
+Due Date: 2026-09-19
+Currency: INR
+Subtotal: 1000.00
+Tax: 180.00
+Total: 1180.00
