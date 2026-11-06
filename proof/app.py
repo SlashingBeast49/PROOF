@@ -12,14 +12,14 @@ import uuid
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from proof.engine import verify_documents
 from proof.extract import parse_document
 from proof.models import Document, ExtractedField, VerificationCase
-from proof.report import build_case_dict, generate_html_report, save_case_report
+from proof.report import build_case_dict, generate_html_report, generate_pdf_report, save_case_report
 
 app = FastAPI(
     title="PROOF Document Intelligence API",
@@ -73,7 +73,7 @@ PO Reference: PO-9942
 Issue Date: 2026-08-20
 Due Date: 2026-09-19
 Vendor Name: Apex Software Solutions
-Customer Name: Siddharth Tech Ltd
+Customer Name: Siddarth Tech Ltd
 Currency: INR
 Subtotal: 1000.00
 Tax: 180.00
@@ -86,7 +86,7 @@ PO Number: PO-9942
 Issue Date: 2026-08-15
 Delivery Date: 2026-09-15
 Vendor Name: Apex Software Solutions
-Customer Name: Siddharth Tech Ltd
+Customer Name: Siddarth Tech Ltd
 Currency: INR
 Subtotal: 1000.00
 Tax: 180.00
@@ -106,7 +106,7 @@ PO Reference: PO-8800
 Issue Date: 2026-08-10
 Due Date: 2026-09-10
 Vendor Name: Global Hardware Inc
-Customer Name: Siddharth Tech Ltd
+Customer Name: Siddarth Tech Ltd
 Currency: USD
 Subtotal: 1200.00
 Tax: 150.00
@@ -119,7 +119,7 @@ PO Number: PO-8801
 Issue Date: 2026-08-14
 Delivery Date: 2026-09-20
 Vendor Name: Global Hardware Inc
-Customer Name: Siddharth Tech Ltd
+Customer Name: Siddarth Tech Ltd
 Currency: USD
 Subtotal: 900.00
 Tax: 100.00
@@ -301,6 +301,25 @@ def get_case_html(case_id: str):
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     return generate_html_report(case)
+
+
+@app.get("/api/cases/{case_id}/report.pdf")
+def get_case_pdf(case_id: str):
+    """Generates and serves a downloadable PDF audit report."""
+    case = CASE_STORE.get(case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    output_dir = Path("outputs")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    pdf_path = output_dir / f"{case_id}_report.pdf"
+    generate_pdf_report(case, pdf_path)
+
+    return FileResponse(
+        path=pdf_path,
+        media_type="application/pdf",
+        filename=f"{case_id}_verification_report.pdf",
+    )
 
 
 @app.get("/", response_class=HTMLResponse)

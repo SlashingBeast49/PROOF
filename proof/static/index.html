@@ -628,17 +628,63 @@
             font: 400 12px var(--mono);
         }
 
+        /* Devotional Section matching thehsiddarth.com */
+        .devotional {
+            text-align: center;
+            padding: 56px 20px 42px;
+            border-top: 1px solid var(--line);
+            max-width: var(--max);
+            margin: auto;
+        }
+
+        .devotional-label {
+            display: block;
+            font-size: 10px;
+            letter-spacing: 3px;
+            opacity: 0.55;
+            margin-bottom: 22px;
+            font-family: var(--mono);
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .devotional h2 {
+            font-family: serif;
+            font-size: 26px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            color: var(--accent);
+            letter-spacing: 0.05em;
+        }
+
+        .devotional p {
+            font-family: serif;
+            font-size: 16.5px;
+            line-height: 2.2;
+            opacity: 0.85;
+            max-width: 650px;
+            margin: auto;
+            color: var(--text);
+            white-space: pre-line;
+        }
+
+        @media (max-width: 600px) {
+            .devotional { padding: 38px 16px 28px; }
+            .devotional p { font-size: 14.5px; line-height: 2; }
+        }
+
         /* Site Footer */
         .site-footer {
             max-width: var(--max);
             margin: auto;
-            padding: 35px 24px 50px;
+            padding: 28px 24px 45px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
             gap: 15px;
             color: var(--muted);
             font: 400 11px var(--mono);
-            border-top: 1px solid var(--line);
+            border-top: 1px solid color-mix(in srgb, var(--line) 40%, transparent);
         }
 
         /* Modal */
@@ -839,7 +885,7 @@ PO Reference: PO-9942
 Issue Date: 2026-08-20
 Due Date: 2026-09-19
 Vendor Name: Apex Software Solutions
-Customer Name: Siddharth Tech Ltd
+Customer Name: Siddarth Tech Ltd
 Currency: INR
 Subtotal: 1000.00
 Tax: 180.00
@@ -856,7 +902,7 @@ PO Number: PO-9942
 Issue Date: 2026-08-15
 Delivery Date: 2026-09-15
 Vendor Name: Apex Software Solutions
-Customer Name: Siddharth Tech Ltd
+Customer Name: Siddarth Tech Ltd
 Currency: INR
 Subtotal: 1000.00
 Tax: 180.00
@@ -1007,14 +1053,27 @@ Total: 1180.00</textarea>
         </section>
     </main>
 
+    <!-- Devotional Section matching thehsiddarth.com -->
+    <section class="devotional" aria-label="Devotional">
+        <span class="devotional-label">A MOMENT OF GRATITUDE</span>
+        <h2>॥ ॐ नमः शिवाय ॥</h2>
+        <p>
+            ॐ नमो हिरण्यबाहवे हिरण्यवर्णाय
+            हिरण्यरूपाय हिरण्यपतये ।
+            अम्बिकापतये उमापतये पशुपतये
+            नमो नमः ॥
+        </p>
+    </section>
+
     <!-- Site Footer -->
     <footer class="site-footer">
         <div>
-            <span>PROOF &bull; Document verification without magic-word marketing</span>
+            <span>© 2026 H. Siddarth &bull; PROOF (Document Verification)</span>
         </div>
         <div>
             <a href="https://thehsiddarth.com" target="_blank" style="color: var(--accent);">thehsiddarth.com</a> &bull;
-            <a href="https://github.com/SlashingBeast49/PROOF" target="_blank">GitHub</a>
+            <a href="https://github.com/SlashingBeast49/PROOF" target="_blank">GitHub</a> &bull;
+            <a href="#home">back to top ↑</a>
         </div>
     </footer>
 
@@ -1066,22 +1125,22 @@ Total: 1180.00</textarea>
                 title: "Invoice & PO Harmonized (Valid Match)",
                 doc1: {
                     name: "INV-2026-001.txt",
-                    text: `Document Type: Invoice\nInvoice Number: INV-2026-001\nPO Reference: PO-9942\nIssue Date: 2026-08-20\nDue Date: 2026-09-19\nVendor Name: Apex Software Solutions\nCustomer Name: Siddharth Tech Ltd\nCurrency: INR\nSubtotal: 1000.00\nTax: 180.00\nTotal: 1180.00`
+                    text: `Document Type: Invoice\nInvoice Number: INV-2026-001\nPO Reference: PO-9942\nIssue Date: 2026-08-20\nDue Date: 2026-09-19\nVendor Name: Apex Software Solutions\nCustomer Name: Siddarth Tech Ltd\nCurrency: INR\nSubtotal: 1000.00\nTax: 180.00\nTotal: 1180.00`
                 },
                 doc2: {
                     name: "PO-9942.txt",
-                    text: `Document Type: Purchase Order\nPO Number: PO-9942\nIssue Date: 2026-08-15\nDelivery Date: 2026-09-15\nVendor Name: Apex Software Solutions\nCustomer Name: Siddharth Tech Ltd\nCurrency: INR\nSubtotal: 1000.00\nTax: 180.00\nTotal: 1180.00`
+                    text: `Document Type: Purchase Order\nPO Number: PO-9942\nIssue Date: 2026-08-15\nDelivery Date: 2026-09-15\nVendor Name: Apex Software Solutions\nCustomer Name: Siddarth Tech Ltd\nCurrency: INR\nSubtotal: 1000.00\nTax: 180.00\nTotal: 1180.00`
                 }
             },
             amount_and_po_mismatch: {
                 title: "Total Discrepancy & PO Conflict (Fail)",
                 doc1: {
                     name: "Supplier_Invoice_781.txt",
-                    text: `Document Type: Invoice\nInvoice Number: INV-781\nPO Reference: PO-8800\nIssue Date: 2026-08-10\nDue Date: 2026-09-10\nVendor Name: Global Hardware Inc\nCustomer Name: Siddharth Tech Ltd\nCurrency: USD\nSubtotal: 1200.00\nTax: 150.00\nTotal: 1350.00`
+                    text: `Document Type: Invoice\nInvoice Number: INV-781\nPO Reference: PO-8800\nIssue Date: 2026-08-10\nDue Date: 2026-09-10\nVendor Name: Global Hardware Inc\nCustomer Name: Siddarth Tech Ltd\nCurrency: USD\nSubtotal: 1200.00\nTax: 150.00\nTotal: 1350.00`
                 },
                 doc2: {
                     name: "Approved_PO_8801.txt",
-                    text: `Document Type: Purchase Order\nPO Number: PO-8801\nIssue Date: 2026-08-14\nDelivery Date: 2026-09-20\nVendor Name: Global Hardware Inc\nCustomer Name: Siddharth Tech Ltd\nCurrency: USD\nSubtotal: 900.00\nTax: 100.00\nTotal: 1000.00`
+                    text: `Document Type: Purchase Order\nPO Number: PO-8801\nIssue Date: 2026-08-14\nDelivery Date: 2026-09-20\nVendor Name: Global Hardware Inc\nCustomer Name: Siddarth Tech Ltd\nCurrency: USD\nSubtotal: 900.00\nTax: 100.00\nTotal: 1000.00`
                 }
             },
             incomplete_tax_error: {

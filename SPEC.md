@@ -3,7 +3,7 @@
 **Version:** 0.1.0  
 **Status:** Approved / V0.1 Baseline  
 **System:** PROOF Document Intelligence & Consistency Verification  
-**Author / Maintainer:** Siddharth & Engineering Team  
+**Author / Maintainer:** Siddarth & Engineering Team  
 
 ---
 

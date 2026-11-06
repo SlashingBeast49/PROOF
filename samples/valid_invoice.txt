@@ -4,7 +4,7 @@ PO Reference: PO-9942
 Issue Date: 2026-08-20
 Due Date: 2026-09-19
 Vendor Name: Apex Software Solutions
-Customer Name: Siddharth Tech Ltd
+Customer Name: Siddarth Tech Ltd
 Currency: INR
 Subtotal: 1000.00
 Tax: 180.00
